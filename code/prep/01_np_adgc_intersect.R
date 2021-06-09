@@ -1,7 +1,7 @@
 
 library(pacman)
 p_load("data.table", "magrittr", "ggplot2", "pacman")
-na_strings <- c("999", "888", "-9", "-4")
+na_strings <- c("-9", "-4", "9999", "999", "888")
 # Universal Data Set + NP
 uds <- fread("/data_global/nacc/investigator_nacc53.csv", na.strings = na_strings)
 # NP data not longitudinal, so just keep obs from last visit
