@@ -46,9 +46,13 @@ np <- np[!((NACCID %in% np_dup_id$NACCID) & uds == 0)]
 # add variable indicating genotype data available in ADGC_HRC
 #-------------------------------------------------------------
 
-adgc <- fread("/data_global/ADGC_HRC/converted/full/adgc_hrc_merged_qced.covar")
-np <- np[NACCID %in% adgc$IID]
-setcolorder(np, c("NACCID"))
-saveRDS(np, file = "data/nacc_np.Rds")
+adgc_hrc <- fread("/data_global/ADGC_HRC/converted/full/adgc_hrc_merged_qced.covar")
+adgc_topmed <- fread("data/nacc_ids_adgc_topmed.txt", header = FALSE)
+np_hrc <- np[NACCID %in% adgc_hrc$IID]
+np_topmed <- np[NACCID %in% adgc_topmed$V1]
+np_hrc_only <- np_hrc[!(NACCID %in% np_topmed$NACCID)]
+np_topmed_only <- np_topmed[!(NACCID %in% np_hrc$NACCID)]
+setcolorder(np_topmed, c("NACCID"))
+saveRDS(np_topmed, file = "data/nacc_np.Rds")
 rm(list = ls())
 p_unload(all)

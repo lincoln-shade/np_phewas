@@ -8,6 +8,10 @@ p_load(data.table, magrittr)
 
 np <- readRDS("data/nacc_np.Rds")
 
+#----------------------------
+# categorize NP variables
+#----------------------------
+
 # variables that won't be treated as outcome variables. May be used as covariates in some/all analyses
 not_outcome_vars <- c("NACCID", "NACCADC", "NPFORMVER", "NPSEX", "NACCDAGE", "NACCMOD", "NACCYOD", "NACCINT", "NPPMIH", "NPFIX", "NPFIXX", "NPWBRF", "NPTAN", 
                       "NPTANX", "NPABAN", "NPABANX", "NPASAN", "NPASANX", "NPTDPAN", "NPTDPANX", "NPHISMB", "NPHISG", "NPHISSS", "NPHIST", "NPHISO", "NPHISOX", 
@@ -41,9 +45,9 @@ bin_vars_1_7 <- c("NACCDOWN")
 
 # ordinal vars
 #----------------
-ordinal_vars_0_1_2_3_8_9_neg4 <- c("NPGRCCA", "NPGRHA", "NPGRSNH", "NPGRLCH", "NPADNC", "NPOLD1", "NPOLD2", "NPOLD3", "NPOLD4", "NPOLDD1", "NPOLDD2", 
+ord_vars_0_1_2_3_8_9_neg4 <- c("NPGRCCA", "NPGRHA", "NPGRSNH", "NPGRLCH", "NPADNC", "NPOLD1", "NPOLD2", "NPOLD3", "NPOLD4", "NPOLDD1", "NPOLDD2", 
                                    "NPOLDD3", "NPOLDD4", "NPWMR", "NPNLOSS", "NPHIPSCL")
-ordinal_vars_0_1_2_3_8_9 <- c("NACCAVAS", "NACCNEUR", "NACCDIFF", "NACCAMY", "NACCARTE")
+ord_vars_0_1_2_3_8_9 <- c("NACCAVAS", "NACCNEUR", "NACCDIFF", "NACCAMY", "NACCARTE")
 ord_vars_0_1_2_3_4_5_8_9_neg4 <- c("NPTHAL")
 # 7 should be missing in NACCBRAA bc indicates some other tauopathy
 ord_vars_0_1_2_3_4_5_6_7_8_9_neg4 <- c("NACCBRAA")
@@ -54,3 +58,30 @@ cat_vars_0_1_2_3_4_8_9 <- c("NACCLEWY")
 cat_vars_0_1_2_3_4_5_8_9_neg4 <- c("NPLBOD", "NPALSMND")
 # 3 = none present, 4 = missing
 cat_vars_1_2_3_4_9_neg4 <- c("NPFTD")
+
+#------------------------------------
+# functions to set values to missing
+#------------------------------------
+# note, for PLINK, default missing phenotype value is -9, can be explicitly noted with --missing-phenotype <integer>
+# --1 flag can be used to denote that phenotypes are 0 = control, 1 = case
+set_missing_vals <- function(var, na_vals) {
+  var <- ifelse(var %in% na_vals, NA, var)
+  return(var)
+} %>% 
+  Vectorize()
+
+set_missing_8_9_neg4 <- function(var, na_vals = c(8, 9, -4)) {
+  set_missing_vals(var, na_vals)
+}
+
+#-------------------------------
+# set values to missing
+#-------------------------------
+
+vars_set_8_9_neg4_na <- c(bin_vars_0_1_8, bin_vars_0_1_8_9, bin_vars_0_1_8_9_neg4, bin_vars_0_1_9, bin_vars_0_1_neg4, 
+                          ord_vars_0_1_2_3_8_9, ordinal_vars_0_1_2_3_8_9_neg4)
+
+for (i in vars_set_8_9_neg4_na) {
+  np[[i]] <- set_missing_8_9_neg4(np[[i]])
+  print(np[, .N, i])
+}
