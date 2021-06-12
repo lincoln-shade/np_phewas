@@ -40,5 +40,6 @@ vignettes/*.pdf
 
 # project folders
 /data
+/raw_data
 /doc
 /output

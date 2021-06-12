@@ -47,12 +47,15 @@ np <- np[!((NACCID %in% np_dup_id$NACCID) & uds == 0)]
 #-------------------------------------------------------------
 
 adgc_hrc <- fread("/data_global/ADGC_HRC/converted/full/adgc_hrc_merged_qced.covar")
-adgc_topmed <- fread("data/nacc_ids_adgc_topmed.txt", header = FALSE)
+adgc_raw <- fread("data/nacc_ids_adgc_topmed.txt", header = FALSE)
+adgc_topmed <- fread("data/ADC_NHW_chr1.fam", header = FALSE)
 np_hrc <- np[NACCID %in% adgc_hrc$IID]
-np_topmed <- np[NACCID %in% adgc_topmed$V1]
+np_topmed <-  merge(np, adgc_topmed[, .(V1, V2)], by.x = "NACCID", by.y = "V2")
+np_topmed <- np_topmed[!(NACCID %in% NACCID[duplicated(NACCID)])]
 np_hrc_only <- np_hrc[!(NACCID %in% np_topmed$NACCID)]
 np_topmed_only <- np_topmed[!(NACCID %in% np_hrc$NACCID)]
-setcolorder(np_topmed, c("NACCID"))
+setcolorder(np_topmed, c("V1", "NACCID"))
+setnames(np_topmed, c("V1", "NACCID"), c("FID", "IID"))
 saveRDS(np_topmed, file = "data/nacc_np.Rds")
 rm(list = ls())
 p_unload(all)
