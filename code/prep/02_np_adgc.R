@@ -18,10 +18,10 @@ mds <- fread("/data_global/nacc/fardo09062019.csv", na.strings = na_strings)
 # > "Note that all subjects with an NP Form will have a known age at death."
 # So, can use NACCDAGE to separate those with NP data from those without
 
-uds[!(is.na(NACCDAGE)), np := 1]
+uds[!(is.na(NPFORMVER)), np := 1]
 table(uds$np, useNA = "a")
 
-mds[!(is.na(NACCDAGE)), np := 1]
+mds[!(is.na(NPFORMVER)), np := 1]
 table(mds$np, useNA = "a")
 
 np_vars <- colnames(uds)[grep("NP", colnames(uds))]
@@ -52,6 +52,7 @@ adgc_topmed <- fread("data/ADC_NHW_chr1.fam", header = FALSE)
 np_hrc <- np[NACCID %in% adgc_hrc$IID]
 np_topmed <-  merge(np, adgc_topmed[, .(V1, V2)], by.x = "NACCID", by.y = "V2")
 np_topmed <- np_topmed[!(NACCID %in% NACCID[duplicated(NACCID)])]
+np_adgc <- merge(np, adgc_raw[, .(V2, V3)], by.x = "NACCID", by.y = "V2")
 np_hrc_only <- np_hrc[!(NACCID %in% np_topmed$NACCID)]
 np_topmed_only <- np_topmed[!(NACCID %in% np_hrc$NACCID)]
 setcolorder(np_topmed, c("V1", "NACCID"))
