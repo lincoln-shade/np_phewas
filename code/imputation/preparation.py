@@ -67,7 +67,7 @@ if __name__ == '__main__':
     
     ## 6. create vcf.gz
     for i in range(22):
-        cmd_step6 = "vcf-sort " + plinkfile + "_extract-updated-chr" + str(i+1) + ".vcf | bgzip -c > data/vcf/" + os.path.basename(args.bfile) + "_extract-updated-chr" + str(i+1) + ".vcf.gz"
+        cmd_step6 = "vcf-sort " + plinkfile + "_extract-updated-chr" + str(i+1) + ".vcf | bgzip -c > data/tmp/vcf/" + os.path.basename(args.bfile) + "_chr" + str(i+1) + ".vcf.gz"
         subprocess.call(cmd_step6, shell = True)
 
     
