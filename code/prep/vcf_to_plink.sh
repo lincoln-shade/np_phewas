@@ -36,7 +36,7 @@ echo > $list_file
 seq 1 12 | xargs -I % echo ./data/tmp/"$study"%_"$race"_chr"$chr" >> $list_file
 
 # create plink fileset for each chromosome.
-seq 1 12 | xargs -P 12 -I %  python3 code/prep/convert_vcf.py --vcf "$vcf_prefix_1"%"$vcf_prefix_2" --geno 0.5 --out ./data/tmp/"$study"%_"$race"_chr"$chr"
+seq 1 12 | xargs -P 12 -I %  python3 code/prep/convert_vcf.py --vcf "$vcf_prefix_1"%"$vcf_prefix_2" --out ./data/tmp/"$study"%_"$race"_chr"$chr"
 
 
 plink \

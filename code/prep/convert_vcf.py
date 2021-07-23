@@ -6,8 +6,8 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--vcf", required=True, help = "vcf file path")
-parser.add_argument("--geno", default = "0.05", help = "maximum propotion of people can be missing alleles")
-# parser.add_argument("--maf", default = "0.01", help = "minimum minor allele frequency") 
+parser.add_argument("--geno", help = "maximum propotion of people can be missing alleles")
+parser.add_argument("--maf", help = "minimum minor allele frequency") 
 parser.add_argument("--out", default = "data/tmp/tmp", help = "output fileset prefix")
 
 args = parser.parse_args()
