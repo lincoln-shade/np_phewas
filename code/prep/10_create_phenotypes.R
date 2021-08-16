@@ -6,8 +6,9 @@
 library(pacman)
 p_load(data.table, magrittr)
 
-np <- readRDS("data/nacc_np.Rds")
-
+np <- readRDS("data/np.Rds")
+covar <- fread("data/plink/adc_np.covar")
+np <- np[IID %in% covar$IID]
 #----------------------------
 # categorize NP variables
 #----------------------------
@@ -79,9 +80,37 @@ set_missing_8_9_neg4 <- function(var, na_vals = c(8, 9, -4)) {
 #-------------------------------
 
 vars_set_8_9_neg4_na <- c(bin_vars_0_1_8, bin_vars_0_1_8_9, bin_vars_0_1_8_9_neg4, bin_vars_0_1_9, bin_vars_0_1_neg4, 
-                          ord_vars_0_1_2_3_8_9, ordinal_vars_0_1_2_3_8_9_neg4)
+                          ord_vars_0_1_2_3_8_9, ord_vars_0_1_2_3_8_9_neg4)
 
 for (i in vars_set_8_9_neg4_na) {
   np[[i]] <- set_missing_8_9_neg4(np[[i]])
   print(np[, .N, i])
 }
+
+#---------------------
+# complex/derived NPE
+#---------------------
+
+# HS binary
+np[NPHIPSCL == 0 | NPSCL == 2, HS := 0]
+np[NPHIPSCL %in% 1:3 | NPSCL == 1, HS := 1]
+# np[NPHIPSCL == 2, HS := 2]
+
+# B-ASC binary
+np[NACCARTE %in% 0:1, ASC := 0]
+np[NACCARTE %in% 2:3, ASC := 1]
+
+# LATE
+np[NPTDPB == 0 | NPTDPC ==0 | NPTDPD == 0 | NPTDPE == 0, LATE := 0]
+np[NPTDPB == 1 | NPTDPC == 1 | NPTDPD == 1 | NPTDPE == 1, LATE := 1]
+
+#-------------------
+# create new object
+#-------------------
+
+saveRDS(np, file = "data/np_qced.Rds")
+fwrite(np[, .(FID, IID, ASC)], 
+       file = "data/plink/adc_np.pheno",
+       quote = FALSE,
+       sep = " ",
+       na = -1)

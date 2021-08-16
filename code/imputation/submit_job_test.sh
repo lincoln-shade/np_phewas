@@ -1,3 +1,0 @@
-#!/bin/bash
-
-curl -H "X-Auth-Token: eyJjdHkiOiJ0ZXh0XC9wbGFpbiIsImFsZyI6IkhTMjU2In0.eyJtYWlsIjoibGluY29sbi5zaGFkZUB1a3kuZWR1IiwiZXhwaXJlIjoxNjI2MzE4ODQ0MDE0LCJuYW1lIjoiTGluY29sbiBTaGFkZSIsImFwaSI6dHJ1ZSwidXNlcm5hbWUiOiJsaW5jb2xuIn0.gSzhyvCkouUuzeWAHlqNMe0_Hbmu6J-C1TEVrwFFOaI" -F "input-files=@/home/lmsh224/projects/np_phewas/data/tmp/ADC2_NHW.qced_extract-updated-chr22.vcf.gz" -F "input-refpanel=apps@topmed-r2@1.0.0" -F "input-phasing=eagle" https://imputation.biodatacatalyst.nhlbi.nih.gov/api/v2/jobs/submit/imputationserver

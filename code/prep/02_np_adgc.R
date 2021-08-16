@@ -7,7 +7,6 @@ uds <- fread("/data_global/nacc/investigator_nacc53.csv", na.strings = na_string
 # NP data not longitudinal, so just keep obs from last visit
 uds <- uds[NACCVNUM == NACCAVST]
 
-
 # Minimal Data Set + NP
 mds <- fread("/data_global/nacc/fardo09062019.csv", na.strings = na_strings)
 #------------------------------------------------------
@@ -46,17 +45,12 @@ np <- np[!((NACCID %in% np_dup_id$NACCID) & uds == 0)]
 # add variable indicating genotype data available in ADGC_HRC
 #-------------------------------------------------------------
 
-adgc_hrc <- fread("/data_global/ADGC_HRC/converted/full/adgc_hrc_merged_qced.covar")
-adgc_raw <- fread("data/nacc_ids_adgc_topmed.txt", header = FALSE)
-adgc_topmed <- fread("data/ADC_NHW_chr1.fam", header = FALSE)
-np_hrc <- np[NACCID %in% adgc_hrc$IID]
-np_topmed <-  merge(np, adgc_topmed[, .(V1, V2)], by.x = "NACCID", by.y = "V2")
-np_topmed <- np_topmed[!(NACCID %in% NACCID[duplicated(NACCID)])]
-np_adgc <- merge(np, adgc_raw[, .(V2, V3)], by.x = "NACCID", by.y = "V2")
-np_hrc_only <- np_hrc[!(NACCID %in% np_topmed$NACCID)]
-np_topmed_only <- np_topmed[!(NACCID %in% np_hrc$NACCID)]
-setcolorder(np_topmed, c("V1", "NACCID"))
-setnames(np_topmed, c("V1", "NACCID"), c("FID", "IID"))
-saveRDS(np_topmed, file = "data/nacc_np.Rds")
+adgc <- fread("data/tmp/adc_no_dup.fam", header = FALSE)
+np_adgc <-  merge(np, adgc[, .(V1, V2)], by.x = "NACCID", by.y = "V2")
+np_adgc <- np_adgc[!(NACCID %in% NACCID[duplicated(NACCID)])]
+setcolorder(np_adgc, c("V1", "NACCID"))
+setnames(np_adgc, c("V1", "NACCID"), c("FID", "IID"))
+saveRDS(np_adgc, file = "data/np.Rds")
+fwrite(np_adgc, file = "data/np.csv", quote = FALSE)
 rm(list = ls())
 p_unload(all)
