@@ -9,6 +9,24 @@ p_load(data.table, magrittr)
 np <- readRDS("data/np.Rds")
 covar <- fread("data/plink/adc_np.covar")
 np <- np[IID %in% covar$IID]
+
+apply_exclusion_criteria <- function(dt) {
+  dt %>% 
+    .[is.na(NACCDOWN) | NACCDOWN != 1] %>%
+    .[is.na(NPPDXA) | NPPDXA != 1] %>% .[is.na(NPPDXB) | NPPDXB != 1] %>%
+    .[is.na(NPPDXD) | NPPDXD != 1] %>% .[is.na(NPPDXE) | NPPDXE != 1] %>%
+    .[is.na(NPPDXF) | NPPDXF != 1] %>% .[is.na(NPPDXG) | NPPDXG != 1] %>%
+    .[is.na(NPPDXH) | NPPDXH != 1] %>% .[is.na(NPPDXI) | NPPDXI != 1] %>%
+    .[is.na(NPPDXJ) | NPPDXJ != 1] %>% .[is.na(NPPDXK) | NPPDXK != 1] %>% 
+    .[is.na(NPPDXL) | NPPDXL != 1] %>% .[is.na(NPPDXM) | NPPDXM != 1] %>% 
+    .[is.na(NPPDXN) | NPPDXN != 1] %>% .[is.na(NACCPRIO) | NACCPRIO != 1] %>% 
+    .[is.na(NPPATH10) | NPPATH10 != 1] %>% .[is.na(NPALSMND) | NPALSMND != 1] %>% 
+    .[is.na(NPFTDTAU) | NPFTDTAU != 1] %>% .[is.na(NPOFTD) | NPOFTD != 1] %>% 
+    .[is.na(NPFTDTDP) | NPFTDTDP != 1] %>% 
+    as.data.table()
+}
+
+np <- apply_exclusion_criteria(np)
 #----------------------------
 # categorize NP variables
 #----------------------------
@@ -22,7 +40,7 @@ not_outcome_vars <- c("NACCID", "NACCADC", "NPFORMVER", "NPSEX", "NACCDAGE", "NA
 # continuous variables
 cont_vars <- c("NPWBRWT")
 
-# count variables
+# count variables (probably wont be used as outcomes due to low sample sizes)
 count_vars <- c("NPINF1A", "NPINF1B", "NPINF1D", "NPINF1F", "NPINF2A", "NPINF2B", "NPINF2D", "NPINF2F", "NPINF3A", "NPINF3B", "NPINF3D", "NPINF3F", "NPINF4A", 
                 "NPINF4B", "NPINF4D", "NPINF4F")
 
@@ -104,12 +122,37 @@ np[NACCARTE %in% 2:3, ASC := 1]
 np[NPTDPB == 0 | NPTDPC ==0 | NPTDPD == 0 | NPTDPE == 0, LATE := 0]
 np[NPTDPB == 1 | NPTDPC == 1 | NPTDPD == 1 | NPTDPE == 1, LATE := 1]
 
+# Atherosclerosis in Circle of Willis
+np[NACCAVAS %in% 0, ATHCW := 0]
+np[NACCAVAS %in% 1:3, ATHCW := 1]
+
+# Braak stage (B score)
+np[NACCBRAA %in% 0:4, BRAAK := 0]
+np[NACCBRAA %in% 5:6, BRAAK := 1]
+
+# Density of neocorical neuritic plaques (C score)
+np[NACCNEUR %in% 0:2, NEUR := 0]
+np[NACCNEUR %in% 3, NEUR := 1]
+
+# Density of diffuse plaques
+np[NACCDIFF %in% 0:2, DIFF := 0]
+np[NACCDIFF %in% 3, DIFF := 1]
+
+# CAA
+np[NACCAMY %in% 0, CAA := 0]
+np[NACCAMY %in% 1:3, CAA := 1]
+
+# Lewy Bodies
+np[NACCLEWY %in% 0, LEWY := 0]
+np[NACCLEWY %in% 1:4, LEWY := 1]
+
+
 #-------------------
 # create new object
 #-------------------
 
 saveRDS(np, file = "data/np_qced.Rds")
-fwrite(np[, .(FID, IID, ASC)], 
+fwrite(np[, .(FID, IID, ASC, HS, LATE, ATHCW, BRAAK, DIFF, CAA, NACCINF, NACCMICR, NACCHEM, LEWY)], 
        file = "data/plink/adc_np.pheno",
        quote = FALSE,
        sep = " ",

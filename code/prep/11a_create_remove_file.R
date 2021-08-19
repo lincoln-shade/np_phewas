@@ -34,11 +34,17 @@ related_pheno <- related_pheno[!(is.na(phenotype))][pair %in% pair[duplicated(pa
 # add random numbers and create list of ids to remove
 #-------------------------------------------------------
 
-set.seed(20210816)
-related_pheno[, n := sample(1:.N, .N)]
-setorder(related_pheno, pair, n)
+if (nrow(related_pheno) > 0) {
+  set.seed(20210816)
+  related_pheno[, n := sample(1:.N, .N)]
+  setorder(related_pheno, pair, n)
+  
+  id_remove <- related_pheno[seq(1, .N, 2), .(FID, IID)]
+} else {
+  id_remove <- data.table(FID = "", 
+                          IID = "")
+}
 
-id_remove <- related_pheno[seq(1, .N, 2), .(FID, IID)]
 fwrite(id_remove, 
        file = paste0(dir_path, "/", phenotype, ".remove"), 
        col.names = FALSE, 
