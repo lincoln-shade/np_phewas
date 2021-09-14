@@ -1,41 +1,82 @@
-##---------------------------------------------
-## take input rsIDs and convert to 
-## [chr]_[bp_hg38]_[ref]_[alt]_b38 format
-##---------------------------------------------
+#!/usr/bin/Rscript --vanilla
 
+#=========================================
+# take input variant ids and convert to 
+# [chr]_[bp_hg38]_[ref]_[alt]_b38 format
+#=========================================
+options(warn=-1, message=-1)
 library(pacman)
 p_load(data.table, magrittr, rentrez)
 source("code/functions/strip_alleles.R")
+variants <- fread("cat /dev/stdin", header = FALSE)$V1
+args <- commandArgs(trailingOnly = TRUE)
+phenotype <- args[1]
+# variants <- fread(commandArgs(trailingOnly = T), header = F)$V1
+if (is.null(variants)) {
+  stop("No SNPs found!")
+}
+#-------------------------
+# variants with rsIDs
+#-------------------------
+rsids <- variants[grep("rs", variants)]
+# if (length(rsids) == 0) stop("You must input at least 1 rsID")
 
-rsids <- fread(commandArgs(trailingOnly = T), header = F)$V1
-snps <- rsids
-if (length(snps) == 0) stop("You must input at least 1 rsID")
-snps <- stri_replace_first_regex(snps, "rs", "") %>% 
-  strip_alleles() %>% 
+rsids <- stri_replace_first_regex(rsids, "rs", "") %>%
+  strip_alleles() %>%
   as.integer()
 
 # retrieve SNP summaries from dbSNP
-dbsnp <- entrez_summary("snp", snps)
+dbsnp <- entrez_summary("snp", rsids, always_return_list = TRUE)
 
-snps <- as.character(snps)
+rsids <- as.character(rsids)
 
-reformat_snp <- function(snp, len) {
-  if (length(snps) < 2) {smry <- dbsnp} else {smry <- dbsnp[[snps[i]]]}
-  alleles <- stri_extract_first_regex(smry[["docsum"]], "[:alpha:]*/[:alpha:]*") %>% 
+reformat_snp <- function(snp, dbsnp) {
+  smry <- dbsnp[[snp]]
+  alleles <- stri_extract_first_regex(smry[["docsum"]], "[:alpha:]*/[:alpha:]*") %>%
     gsub(pattern = "/", replacement = "_", x=.)
   pos <- gsub(":", "_", smry[["chrpos"]])
   snp.new.lab <- paste0("chr", pos, "_", alleles, "_b38")
   snp.new.lab
 }
 
-snps_new <- rep(NA, length(snps))
-for (i in 1:length(snps)) {
-  snps_new[i] <- reformat_snp(snps[i], length(snps))
+rsids_new <- rep(NA, length(rsids))
+for (i in 1:length(rsids)) {
+  rsids_new[i] <- reformat_snp(rsids[i], dbsnp)
 }
 
-fwrite(as.data.table(snps_new), file = "data/tmp/snps.tmp", row.names = F, col.names = F, quote = F)
+#-----------------------------
+# variants without rsIDs
+#-----------------------------
 
-rsid_key <- data.table("rsid"=rsids, "variant_id"=snps_new)
+no_rsid <- variants[grep("rs", variants, invert = TRUE)]
+no_rsid_new <- paste0(stri_replace_all_fixed(no_rsid, ":", "_"), "_b38")
 
-fwrite(rsid_key, file = "data/tmp/rsid_key.tmp", row.names = F, col.names = T, quote = F)
+#-------------------------
+# merge and write output
+#------------------------
+
+fwrite(as.data.table(c(rsids_new, no_rsid_new)), 
+       file = paste0("data/tmp/snps_", phenotype, ".tmp"), 
+       row.names = F, 
+       col.names = F, 
+       quote = F
+)
+
+rsid_key <- data.table("rsid"=c(rsids, no_rsid), 
+                       "variant_id"=c(rsids_new, no_rsid_new)
+)
+
+fwrite(rsid_key, 
+       file = paste0("data/tmp/rsid_key_", phenotype, ".tmp"), 
+       row.names = F, 
+       col.names = T, 
+       quote = F
+)
+
+rsid_key[, cat_py := paste0(variant_id, "\n")]
+if (nrow(rsid_key) > 0) {
+  cat(rsid_key$cat_py, file = stdout())
+} else {
+  cat("No SNPs found!")
+}
 

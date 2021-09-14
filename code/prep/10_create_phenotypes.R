@@ -26,6 +26,9 @@ apply_exclusion_criteria <- function(dt) {
     as.data.table()
 }
 
+exclusion_vars <- c("NACCDOWN", "NPPDXA", "NPPDXB", "NPPDXD", "NPPDXE", "NPPDXF", "NPPDXG", "NPPDXH", "NPPDXI", "NPPDXJ", 
+                    "NPPDXK", "NPPDXL", "NPPDXM", "NPPDXN", "NACCPRIO", "NPPATH10", "NPALSMND", "NPFTDTAU", "NPOFTD", "NPFTDTDP")
+
 np <- apply_exclusion_criteria(np)
 #----------------------------
 # categorize NP variables
@@ -101,16 +104,25 @@ vars_set_8_9_neg4_na <- c(bin_vars_0_1_8, bin_vars_0_1_8_9, bin_vars_0_1_8_9_neg
                           ord_vars_0_1_2_3_8_9, ord_vars_0_1_2_3_8_9_neg4)
 
 for (i in vars_set_8_9_neg4_na) {
-  np[[i]] <- set_missing_8_9_neg4(np[[i]])
-  print(np[, .N, i])
+  # np[[i]] <- set_missing_8_9_neg4(np[[i]])
+  np[, (i) := set_missing_8_9_neg4(get(i))]
+}
+
+# these variables also need to have values == 2 set to 0
+for (i in bin_vars_1_2_3_9_neg4) {
+  np[, (i) := set_missing_vals(get(i), na_vals = c(3, 9, -4))]
+  np[get(i) == 2, (i) := 0]
 }
 
 #---------------------
 # complex/derived NPE
 #---------------------
 
+quick_table <- function(phenotype) {
+  np[, table(get(phenotype), useNA = "a")]
+}
 # HS binary
-np[NPHIPSCL == 0 | NPSCL == 2, HS := 0]
+np[NPHIPSCL == 0 | NPSCL == 0, HS := 0]
 np[NPHIPSCL %in% 1:3 | NPSCL == 1, HS := 1]
 # np[NPHIPSCL == 2, HS := 2]
 
@@ -146,13 +158,23 @@ np[NACCAMY %in% 1:3, CAA := 1]
 np[NACCLEWY %in% 0, LEWY := 0]
 np[NACCLEWY %in% 1:4, LEWY := 1]
 
+# dichotomizing various ordinal variables
+ord_vars_0_1_2_3_8_9_neg4_bin <- paste0(ord_vars_0_1_2_3_8_9_neg4, "_bin")
+
+for (i in ord_vars_0_1_2_3_8_9_neg4) {
+  np[ get(i) %in% 0:1, (paste0(i, "_bin")) := 0]
+  np[ get(i) %in% 2:3, (paste0(i, "_bin")) := 1]
+}
 
 #-------------------
 # create new object
 #-------------------
 
 saveRDS(np, file = "data/np_qced.Rds")
-fwrite(np[, .(FID, IID, ASC, HS, LATE, ATHCW, BRAAK, DIFF, CAA, NACCINF, NACCMICR, NACCHEM, LEWY)], 
+pheno_vars <- c("FID", "IID", "ASC", "HS", "LATE", "ATHCW", "BRAAK", "DIFF", "CAA", "LEWY", 
+                bin_vars_0_1_8_9_neg4, bin_vars_0_1_8_9, bin_vars_0_1_9, 
+                bin_vars_0_1_neg4, bin_vars_1_2_3_9_neg4, ord_vars_0_1_2_3_8_9_neg4_bin)
+fwrite(np[, ..pheno_vars][, -..exclusion_vars], 
        file = "data/plink/adc_np.pheno",
        quote = FALSE,
        sep = " ",

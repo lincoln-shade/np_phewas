@@ -6,26 +6,30 @@
 library(pacman)
 p_load(data.table, magrittr, coloc)
 # new
-# cargs[1] = p12
-# cargs[2] = phenotype_id
-# cargs[3] = tissue
-# cargsp[4] = chr
+# args[1] = p12
+# args[2] = phenotype_id
+# args[3] = tissue
+# argsp[4] = chr
 
-cargs <- commandArgs(trailingOnly = T)
-p12_cargs <- cargs[1]
-out_folder_cargs <- cargs[2]
-phenotype_id_cargs <- cargs[3]
-tissue_cargs <- cargs[4]
-chr_cargs <- cargs[5]
+args <- commandArgs(trailingOnly = T)
+p12_args <- args[1]
+out_folder_args <- args[2]
+gwas_phenotype <- args[3]
+phenotype_id_args <- args[4]
+tissue_args <- args[5]
+chr_args <- args[6]
 
-gwas_qtl <- fread(paste0("data/tmp/chr", chr_cargs, "_", phenotype_id_cargs, "_", tissue_cargs, "_gwas_qtl.txt"))
+gwas_qtl <- fread(paste0("data/tmp/chr", chr_args, "_", phenotype_id_args, "_", tissue_args, "_gwas_qtl", gwas_phenotype, ".tmp"))
 gwas_qtl <- gwas_qtl[!duplicated(gwas_qtl$SNP)]
 
 lead.pos <- gwas_qtl[P_gwas == min(P_gwas), BP_hg38]
 lead_snp <- gwas_qtl[BP_hg38 == lead.pos, SNP]
 window.radius <- 2e5
 
-gwas_qtl <- gwas_qtl[BP_hg38 > lead.pos - window.radius & BP_hg38 < lead.pos + window.radius]
+gwas_qtl <- gwas_qtl[BP_hg38 > lead.pos - window.radius & 
+                       BP_hg38 < lead.pos + window.radius
+]
+
 
 results <- coloc.abf(
   dataset1 = list(
@@ -45,12 +49,12 @@ results <- coloc.abf(
     MAF = gwas_qtl$maf_qtl,
     snp = gwas_qtl$SNP
   ), 
-  p12 = as.numeric(p12_cargs)
+  p12 = as.numeric(p12_args)
 )
 
 posteriors <- unname(results$summary)
 
-write(c(cargs[3:5], lead_snp, posteriors), 
-      file = paste0(out_folder_cargs, "coloc_results.txt"), 
+write(c(args[4:6], lead_snp, posteriors), 
+      file = paste0(out_folder_args, "_coloc_results.txt"), 
       ncolumns = 10, 
       append = TRUE)
