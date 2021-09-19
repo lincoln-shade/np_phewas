@@ -101,7 +101,7 @@ set_missing_8_9_neg4 <- function(var, na_vals = c(8, 9, -4)) {
 #-------------------------------
 
 vars_set_8_9_neg4_na <- c(bin_vars_0_1_8, bin_vars_0_1_8_9, bin_vars_0_1_8_9_neg4, bin_vars_0_1_9, bin_vars_0_1_neg4, 
-                          ord_vars_0_1_2_3_8_9, ord_vars_0_1_2_3_8_9_neg4)
+                          ord_vars_0_1_2_3_8_9, ord_vars_0_1_2_3_8_9_neg4, ord_vars_0_1_2_3_4_5_8_9_neg4)
 
 for (i in vars_set_8_9_neg4_na) {
   # np[[i]] <- set_missing_8_9_neg4(np[[i]])
@@ -113,6 +113,9 @@ for (i in bin_vars_1_2_3_9_neg4) {
   np[, (i) := set_missing_vals(get(i), na_vals = c(3, 9, -4))]
   np[get(i) == 2, (i) := 0]
 }
+
+# braak variable also needs 7 set to NA
+np[, NACCBRAA := set_missing_vals(NACCBRAA, c(7, 8, 9, -4))]
 
 #---------------------
 # complex/derived NPE
@@ -170,7 +173,10 @@ for (i in ord_vars_0_1_2_3_8_9_neg4) {
 # create new object
 #-------------------
 
+# qced data set
 saveRDS(np, file = "data/np_qced.Rds")
+
+# binary outcome variables for analysis
 pheno_vars <- c("FID", "IID", "ASC", "HS", "LATE", "ATHCW", "BRAAK", "DIFF", "CAA", "LEWY", 
                 bin_vars_0_1_8_9_neg4, bin_vars_0_1_8_9, bin_vars_0_1_9, 
                 bin_vars_0_1_neg4, bin_vars_1_2_3_9_neg4, ord_vars_0_1_2_3_8_9_neg4_bin)
@@ -178,4 +184,18 @@ fwrite(np[, ..pheno_vars][, -..exclusion_vars],
        file = "data/plink/adc_np.pheno",
        quote = FALSE,
        sep = " ",
+       na = -1)
+
+# ordinal outcome variables for analysis
+ordinal_vars <- c("FID", "IID", 
+                       ord_vars_0_1_2_3_8_9_neg4, 
+                       ord_vars_0_1_2_3_8_9, 
+                       ord_vars_0_1_2_3_4_5_8_9_neg4, 
+                       ord_vars_0_1_2_3_4_5_6_7_8_9_neg4
+)
+
+fwrite(np[, ..ordinal_vars][, -..exclusion_vars],
+       file = "data/adc_np_ord.txt",
+       quote = FALSE, 
+       sep = " ", 
        na = -1)

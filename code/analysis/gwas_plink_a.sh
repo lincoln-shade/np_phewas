@@ -8,7 +8,7 @@ plink \
   --logistic 'hide-covar' \
   --1 \
   --missing-phenotype -1 \
-  --remove data/plink/remove/"$phenotype".remove \
+  --remove data/related_rm/"$phenotype".remove \
   --pheno data/plink/adc_np.pheno \
   --pheno-name "$phenotype" \
   --covar data/plink/adc_np.covar \

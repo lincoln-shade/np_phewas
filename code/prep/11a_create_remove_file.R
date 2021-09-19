@@ -6,11 +6,12 @@ library(pacman)
 p_load(data.table, magrittr, stringi)
 cl_args <- commandArgs(trailingOnly = TRUE)
 dot_genome <- cl_args[1] # .genome file from PLINK
-phenotype <- cl_args[2] # phenotype
+np_path <- cl_args[2] # file with participants
+phenotype <- cl_args[3] # phenotype
 
-dir_path <- "data/plink/remove"
+dir_path <- "data/related_rm"
 if (!dir.exists(dir_path)) {
-  dir.create(dir_path)
+  dir.create(dir_path, recursive = TRUE)
 }
 
 related <- fread(dot_genome)
@@ -22,7 +23,7 @@ ids <- rbind(related[, .(FID1, IID1)] %>%
 related <- related[, .(IID1, IID2, pair, PI_HAT)]
 related.long <- melt.data.table(related, measure.vars = c("IID1", "IID2"), value.name = "IID")
 
-np <- readRDS("data/np_qced.Rds")
+np <- readRDS(np_path)
 setnames(np, paste(phenotype), "phenotype")
 covar <- fread("data/plink/adc_np.covar")
 np <- np[IID %in% covar$IID]
@@ -31,7 +32,7 @@ related_pheno <- merge(np[, .(FID, IID, phenotype)], related.long, by = "IID")
 related_pheno <- related_pheno[!(is.na(phenotype))][pair %in% pair[duplicated(pair)]]
 
 #-------------------------------------------------------
-# add random numbers and create list of ids to remove
+# add random number seed and create list of ids to remove
 #-------------------------------------------------------
 
 if (nrow(related_pheno) > 0) {
@@ -41,8 +42,7 @@ if (nrow(related_pheno) > 0) {
   
   id_remove <- related_pheno[seq(1, .N, 2), .(FID, IID)]
 } else {
-  id_remove <- data.table(FID = "", 
-                          IID = "")
+  id_remove <- data.table(FID = "", IID = "")
 }
 
 fwrite(id_remove, 
