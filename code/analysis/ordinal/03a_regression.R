@@ -2,7 +2,7 @@
 ## ordinal regression
 ##-------------------------
 library(pacman)
-p_load(data.table, magrittr, rms, stringi)
+p_load(data.table, magrittr, MASS, stringi)
 
 #-----------------------------------------------
 # command-line arguments
@@ -27,8 +27,8 @@ phenotype <- args[4]
 # raw <- fread(paste0("data/tmp/ordinal_snp_list_", 1, ".raw"), header = T) %>% .[, 1:100]
 # covar_data <- fread("data/plink/adc_np.covar")
 # phenotype_data <- fread("data/adc_np_ord.txt", na.strings = "-1")
-# related_rm <- "data/related_rm/NACCBRAA.remove"
-# phenotype <- "NACCBRAA"
+# related_rm <- "data/related_rm/NPOLD1.remove"
+# phenotype <- "NPOLD1"
 
 # make sure FID and IID are character vectors for merging
 covar_data[, `:=`(FID = as.character(FID), IID = as.character(IID))]
@@ -98,38 +98,69 @@ for (i in adgc_cohorts) {
 # initialize output table
 results <- data.table(
   snp = colnames(ord_data)[(skip_cols+1):n_cols],
-  slope = as.numeric(rep(NA, (n_cols - skip_cols))),
-  std.er = as.numeric(rep(NA, (n_cols - skip_cols)))
+  Beta = as.numeric(rep(NA, (n_cols - skip_cols))),
+  SE = as.numeric(rep(NA, (n_cols - skip_cols)))
 )
 
 # ordinal regression 
-run_orm <- function(i) {
-  f <- as.formula(paste0(phenotype, " ~ ", colnames(ord_data)[i],
-                         " + ", paste(colnames(ord_data)[4:skip_cols], 
+
+# run_orm <- function(i) {
+#   f <- as.formula(paste0(phenotype, " ~ ", colnames(ord_data)[i],
+#                          " + ", paste(colnames(ord_data)[4:skip_cols], 
+#                                       collapse = " + "
+#                                 )
+#                   )
+#   )
+#   m <- orm(f, data = ord_data)
+#   if (m$fail == FALSE) {
+#     set(
+#       results,
+#       i     = i - skip_cols,
+#       j     = c("slope", "std.er"),
+#       value = list(
+#         m$coefficients[colnames(ord_data)[i]],
+#         m$var[colnames(ord_data)[i], colnames(ord_data)[i]]
+#       )
+#     )
+#   }
+# }
+# 
+# for (i in (skip_cols + 1L):n_cols) {
+#   run_orm(i)
+# }
+
+run_polr <- function(i) {
+  snp <- colnames(ord_data)[i]
+  f <- as.formula(paste0(phenotype, " ~ ", snp,
+                         " + ", paste(colnames(ord_data)[4:skip_cols],
                                       collapse = " + "
                                 )
                   )
   )
-  m <- orm(f, data = ord_data)
-  if (m$fail == FALSE) {
+ m <- polr(f, ord_data, Hess = TRUE)
+ s <- summary(m)[["coefficients"]]
+  if (m$convergence == 0) {
     set(
       results,
       i     = i - skip_cols,
-      j     = c("slope", "std.er"),
+      j     = c("Beta", "SE"),
       value = list(
-        m$coefficients[colnames(ord_data)[i]],
-        m$var[colnames(ord_data)[i], colnames(ord_data)[i]]
+        s[snp, 1],
+        s[snp, 2]
       )
     )
   }
 }
 
 for (i in (skip_cols + 1L):n_cols) {
-  run_orm(i)
+  run_polr(i)
 }
-
-results[, `:=`(slope = round(slope, 4),
-               std.er = round(sqrt(std.er), 4)
+  
+  
+  
+  
+results[, `:=`(slope = round(Beta, 4),
+               std.er = round(SE, 4)
           )
 ]
 
