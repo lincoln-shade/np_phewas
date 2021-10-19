@@ -2,10 +2,12 @@
 # create manhattan plot
 #=============================
 
-library(pacman)
-p_load(data.table, magrittr, ggplot2, ggrepel)
-
-plot_manhattan <- function(results, signif_only=TRUE, annotate=FALSE) {
+plot_manhattan <- function(results, signif_only=TRUE, annotate=FALSE, font_size=12) {
+  require(data.table)
+  require(magrittr)
+  require(ggplot2)
+  require(ggrepel)
+  
   results <- as.data.table(results)
   results[, BP := as.numeric(BP)]
   if (signif_only) {
@@ -50,7 +52,7 @@ plot_manhattan <- function(results, signif_only=TRUE, annotate=FALSE) {
     theme_bw() +
     theme(
       # text = element_text(family = "Calibri", size = 20),
-      axis.text = element_text(size = 12),
+      axis.text = element_text(size = font_size),
       legend.position="none",
       panel.border = element_blank(),
       panel.grid.major.x = element_blank(),

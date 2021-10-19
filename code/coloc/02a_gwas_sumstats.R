@@ -9,10 +9,11 @@ p_load(data.table, magrittr, rtracklayer, GEOquery, GENESIS, GWASTools, qusage, 
 source("code/functions/strip_alleles.R")
 
 # commandline arguments
-# args 1 = phenotype file (remember phenotype needs to be binary  (1, 2) and third column)
+# args 1 = phenotype file (remember phenotype needs to be binary (0/1) and third column)
 # args 2 = minor allele frequency file .frq
 # args 3 = plink regression file .assoc.logistic
 # args 4 = chromosome integer
+# args 5 = gwas phenotype name
 args <- commandArgs(trailingOnly = T)
 
 ##------------------
