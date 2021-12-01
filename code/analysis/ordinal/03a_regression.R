@@ -2,7 +2,8 @@
 ## ordinal regression
 ##-------------------------
 library(pacman)
-p_load(data.table, magrittr, MASS, stringi)
+# use latest version of ordinal package (https://github.com/runehaubo/ordinal)
+p_load(data.table, magrittr, stringi, ordinal)
 
 #-----------------------------------------------
 # command-line arguments
@@ -15,16 +16,21 @@ args <- commandArgs(trailingOnly = TRUE)
 #-----------------------------------------------
 
 
-# .raw file from regression.sh output with variant minor allele values for each participant
+# .raw file from regression.sh output with variant minor allele 
+# values for each participant
 snp_list_index <- args[5]
-raw <-fread(paste0("data/tmp/ordinal_snp_list_", snp_list_index, ".raw"), header = T)
+raw <-fread(paste0("data/tmp/ordinal_snp_list_", snp_list_index, ".raw"), 
+            header = T)
 covar_data <- fread(args[1])
 phenotype_data <- fread(args[2], na.strings = "-1")
 related_rm <- args[3]
 phenotype <- args[4]
 
 # # test args
-# raw <- fread(paste0("data/tmp/ordinal_snp_list_", 1, ".raw"), header = T) %>% .[, 1:100]
+# snp_list_index <- 1
+# raw <- fread(paste0("data/tmp/ordinal_snp_list_", snp_list_index, ".raw"),
+#              header = T) %>%
+#   .[, 1:1000]
 # covar_data <- fread("data/plink/adc_np.covar")
 # phenotype_data <- fread("data/adc_np_ord.txt", na.strings = "-1")
 # related_rm <- "data/related_rm/NPOLD1.remove"
@@ -47,16 +53,19 @@ ord_data <- merge(phenotype_data[, c("FID", "IID", ..phenotype)],
 ord_data <- merge(ord_data, raw, by = c("FID", "IID"))
 ord_data[, (phenotype) := as.ordered(get(..phenotype))]
 
-# skip number of columns in covar_data + 1 (the phenotype) get to genetic variant columns
+# skip number of columns in covar_data + 1 
+# (the phenotype) get to genetic variant columns
 n_cols <- ncol(ord_data)
 skip_cols <- ncol(covar_data) + 1L 
   
-# replace colons with periods in SNP names, as colons in variable names messes up polr regression
+# replace colons with periods in SNP names, as colons in variable names 
+# messes up regression
 sub_colons <- function(x) { 
   x <- gsub(":", ".", x)
 }
 
-# add the character "v" in the front of all variant names that do not start with "rs"
+# add the character "v" in the front of all variant 
+# names that do not start with "rs"
 for (i in which(colnames(ord_data) %in% 
                 colnames(ord_data)[-grep("rs", colnames(ord_data))
                                    ][-c(1:skip_cols)
@@ -97,71 +106,48 @@ for (i in adgc_cohorts) {
 
 # initialize output table
 results <- data.table(
-  snp = colnames(ord_data)[(skip_cols+1):n_cols],
+  SNP = colnames(ord_data)[(skip_cols+1):n_cols],
   Beta = as.numeric(rep(NA, (n_cols - skip_cols))),
   SE = as.numeric(rep(NA, (n_cols - skip_cols)))
 )
 
 # ordinal regression 
+model_formula <- function(snp) {
+  f <- formula(paste0(phenotype, 
+                      " ~ ", 
+                      snp,
+                      " + ", 
+                      paste(colnames(ord_data)[4:skip_cols],
+                            collapse = " + ")))
+}
 
-# run_orm <- function(i) {
-#   f <- as.formula(paste0(phenotype, " ~ ", colnames(ord_data)[i],
-#                          " + ", paste(colnames(ord_data)[4:skip_cols], 
-#                                       collapse = " + "
-#                                 )
-#                   )
-#   )
-#   m <- orm(f, data = ord_data)
-#   if (m$fail == FALSE) {
-#     set(
-#       results,
-#       i     = i - skip_cols,
-#       j     = c("slope", "std.er"),
-#       value = list(
-#         m$coefficients[colnames(ord_data)[i]],
-#         m$var[colnames(ord_data)[i], colnames(ord_data)[i]]
-#       )
-#     )
-#   }
-# }
-# 
-# for (i in (skip_cols + 1L):n_cols) {
-#   run_orm(i)
-# }
-
-run_polr <- function(i) {
+run_clm <- function(i) {
   snp <- colnames(ord_data)[i]
-  f <- as.formula(paste0(phenotype, " ~ ", snp,
-                         " + ", paste(colnames(ord_data)[4:skip_cols],
-                                      collapse = " + "
-                                )
-                  )
-  )
- m <- polr(f, ord_data, Hess = TRUE)
- s <- summary(m)[["coefficients"]]
-  if (m$convergence == 0) {
+  f <- model_formula(snp)
+  m <- clm(f, data = ord_data)
+  if (m$convergence$code == 0) {
+    sm <- summary(m)
     set(
       results,
       i     = i - skip_cols,
       j     = c("Beta", "SE"),
       value = list(
-        s[snp, 1],
-        s[snp, 2]
+        sm$coefficients[snp, "Estimate"],
+        sm$coefficients[snp, "Std. Error"]
       )
     )
   }
 }
 
 for (i in (skip_cols + 1L):n_cols) {
-  run_polr(i)
+  run_clm(i)
 }
   
   
   
   
-results[, `:=`(slope = round(Beta, 4),
-               std.er = round(SE, 4)
-          )
+results[, `:=`(Beta = round(Beta, 4),
+               SE = round(SE, 4))
 ]
 
 # write outputs to file
@@ -170,9 +156,9 @@ fwrite(results,
          "data/tmp/", 
          phenotype, 
          "_ordinal_results_snp_list_", 
-         args[5], 
-         ".txt"
-       ), 
+         snp_list_index, 
+         ".txt"), 
        quote = F, 
-       sep = " "
+       sep = " ",
+       na = "NA"
 )

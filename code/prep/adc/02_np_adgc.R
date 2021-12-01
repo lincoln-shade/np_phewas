@@ -3,20 +3,20 @@ library(pacman)
 p_load("data.table", "magrittr", "ggplot2", "pacman")
 na_strings <- c("-9", "-4", "9999", "999", "888")
 # Universal Data Set + NP
-uds <- fread("/data_global/nacc/investigator_nacc53.csv", na.strings = na_strings)
+uds <- fread("/data_global/nacc/investigator_nacc53.csv", 
+             na.strings = na_strings)
 # NP data not longitudinal, so just keep obs from last visit
 uds <- uds[NACCVNUM == NACCAVST]
 
 # Minimal Data Set + NP
-mds <- fread("/data_global/nacc/fardo09062019.csv", na.strings = na_strings)
+mds <- fread("/data_global/nacc/fardo09062019.csv", 
+             na.strings = na_strings)
+
 #------------------------------------------------------
 # subset participants with NP data and NP variables
 #------------------------------------------------------
 
-# From the NACC NP data dictionary, regarding NACCDAGE:
-# > "Note that all subjects with an NP Form will have a known age at death."
-# So, can use NACCDAGE to separate those with NP data from those without
-
+# all autopsied have NPFORMVER
 uds[!(is.na(NPFORMVER)), np := 1]
 table(uds$np, useNA = "a")
 
@@ -38,7 +38,8 @@ mds_np[, uds := 0]
 np <- rbind(uds_np, mds_np)
 # one duplicate ID, same values in MDS and UDS so I'll keep UDS row
 sum(duplicated(np$NACCID))
-np_dup_id <- np[NACCID %in% NACCID[duplicated(NACCID)], -c("NACCMOD", "NACCYOD", "uds")]
+np_dup_id <- np[NACCID %in% NACCID[duplicated(NACCID)], 
+                -c("NACCMOD", "NACCYOD", "uds")]
 np <- np[!((NACCID %in% np_dup_id$NACCID) & uds == 0)]
 
 #-------------------------------------------------------------

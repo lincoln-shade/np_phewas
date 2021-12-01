@@ -4,7 +4,7 @@
 
 library(pacman)
 p_load(data.table, magrittr)
-args <- commandArgs(trailingOnly = TRUE)
+# args <- commandArgs(trailingOnly = TRUE)
 
 # load snps from .bim file
 bim_file <- "data/plink/adc_np.bim"# args[1]

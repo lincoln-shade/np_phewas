@@ -1,46 +1,54 @@
 ##-----------------------------------------------
-## merge ordinal and logistic regression results
+## merge ordinal regression results into one dt
 ##-----------------------------------------------
 
 library(pacman)
-p_load(data.table, magrittr)
+p_load(data.table, magrittr, stringi)
 
 cargs <- commandArgs(trailingOnly = TRUE)
-logistic_results <- fread(cargs[1])
-out_prefix <- cargs[2]
+out_prefix <- "output/ordinal"
+pheno <- "NPOLD2" # cargs[1]
 # include trailing "/"
 directory <- "data/tmp/"
+
 lists <- list.files(directory) %>% 
-  .[grep("ordinal_results", .)]
+  .[grep(paste0(pheno, "_ordinal_results"), .)]
+
 list_set <- vector("list", length=length(lists))
+
 for (i in 1:length(lists)) {
-  list_set[[i]] <- fread(paste0(directory, lists[i]))
+  list_set[[i]] <- fread(paste0(directory, lists[i]), fill = TRUE)
 }
 
 ordinal_results <- rbindlist(list_set)
-setnames(ordinal_results, 
-         c("snp", "slope", "std.er"), 
-         c("SNP", "Beta", "SE"))
+ordinal_results <- ordinal_results[!(is.na(Beta))]
 
 # create columns for P value and OR for ordinal regression
-ordinal_results[, STAT := Beta / SE]
-ordinal_results[, P := pnorm(abs(STAT), lower.tail = F) * 2]
+ordinal_results[, STAT := round(Beta / SE, 4)]
+ordinal_results[, P := signif(pnorm(abs(STAT), lower.tail = F) * 2, 4)]
 ordinal_results[, OR := round(exp(Beta), 2)]
-setorder(ordinal_results, P)
 
 # rename SNPs in ordinal regression to match those from logistic
 ordinal_results[, SNP := stri_replace_last_regex(SNP, "_[:alpha:]*", "")]
-ordinal_results[, SNP := stri_replace_last_fixed(SNP, ".", ":")]
-ordinal_results[, SNP := stri_replace_last_fixed(SNP, ".", ":")]
+ordinal_results[, SNP := stri_replace_all_fixed(SNP, ".", ":")]
 ordinal_results[, SNP := stri_replace_first_fixed(SNP, "v", "")]
 
-# merge ordinal and logistic
-results <- merge(ordinal_results, logistic_results, "SNP")
-setorder(results, P.Ord)
-setnames(results, c("OR", "STAT", "P", "L95", "U95", "SE"), c("OR.Log", "STAT.Log", "P.Log", "L95.Log", "U95.Log", "SE.Log"))
-setcolorder(results, c("CHR", "SNP", "BP", "A1", "OR.Ord", "SE.Ord", "P.Ord", "STAT.Ord", 
-                       "OR.Log", "P.Log", "STAT.Log", "L95.Log", "U95.Log"))
+setorder(ordinal_results, P)
+print(head(ordinal_results))
 
-# write.table
-fwrite(results, file = paste0(out_prefix, "ordinal_results.txt"), quote = F, sep = " ")
+# setnames(results, 
+#          c("OR", "STAT", "P", "L95", "U95", "SE"), 
+#          c("OR.Log", "STAT.Log", "P.Log", "L95.Log", "U95.Log", "SE.Log"))
+# setcolorder(results, 
+#             c("CHR", "SNP", "BP", "A1", "OR.Ord", "SE.Ord", "P.Ord", "STAT.Ord", 
+#               "OR.Log", "P.Log", "STAT.Log", "L95.Log", "U95.Log"))
 
+if (!(dir.exists(out_prefix))) {
+  dir.create(out_prefix)
+}
+
+fwrite(ordinal_results, 
+       file = paste0(out_prefix, "/", pheno, "_ordinal_results.txt"), 
+       quote = F,
+       na = "NA",
+       sep = " ")
