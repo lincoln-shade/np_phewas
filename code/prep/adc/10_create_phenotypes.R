@@ -19,7 +19,7 @@ apply_exclusion_criteria <- function(dt) {
     .[is.na(NPPDXH) | NPPDXH != 1] %>% .[is.na(NPPDXI) | NPPDXI != 1] %>%
     .[is.na(NPPDXJ) | NPPDXJ != 1] %>% .[is.na(NPPDXK) | NPPDXK != 1] %>% 
     .[is.na(NPPDXL) | NPPDXL != 1] %>% .[is.na(NPPDXM) | NPPDXM != 1] %>% 
-    .[is.na(NPPDXN) | NPPDXN != 1] %>% .[is.na(NACCPRIO) | NACCPRIO != 1] %>% 
+    .[is.na(NPPDXN) | NPPDXN != 1] %>% .[is.na(NACCPRIO) | NACCPRIO != 1] %>%
     .[is.na(NPPATH10) | NPPATH10 != 1] %>% 
     .[is.na(NPALSMND) | NPALSMND != 1] %>% 
     .[is.na(NPFTDTAU) | NPFTDTAU != 1] %>% 

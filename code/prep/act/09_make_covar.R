@@ -43,6 +43,10 @@ act_np <- merge(act_np,
                 by = "IID")
 
 act_np <- act_np[complete.cases(act_np)]
+setcolorder(act_np, "FID")
+act_np[, FID := 0]
+
+act_np <- act_np[!(duplicated(IID))]
 
 fwrite(act_np, 
        file = "data/plink/act_np.covar",
