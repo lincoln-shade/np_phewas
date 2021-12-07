@@ -76,7 +76,11 @@ for i, file in enumerate(sqtl_files):
     )
 
 pool.close()
-pool.join()  # postpones the execution of next line of code until all processes in the queue are done.
+
+# postpones the execution of next line of code until all 
+# processes in the queue are done.
+pool.join()  
+
 
 # sort and format results
 results.sort(key=lambda x: x[0])

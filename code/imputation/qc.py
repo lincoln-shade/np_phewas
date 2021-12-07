@@ -1,24 +1,5 @@
 #!/usr/bin/env python
-## updated 2021-06-13 by lincoln-shade
 
-
-# def ibs(filename):
-# 
-#     ## read .genome and randomly obtain one of pair
-#     ibs_df = pd.read_csv(cwd + rel_tmp_path + filename + ".genome", sep ="\s*", engine='python')
-#     ibs_df = ibs_df[["FID1", "IID1", "FID2", "IID2"]]
-#     remove_ids = []
-#     for index, dat in ibs_df.iterrows():
-#         rand_num = random.choice([0,2]) ## random value 0 or 2
-#         remove_ids.append([dat[rand_num], dat[(rand_num + 1)]])
-#     remove_ids = pd.DataFrame(remove_ids).drop_duplicates()
-#     remove_ids.to_csv(cwd + rel_tmp_path + filename + ".genome.removed.ids", header = False, index = False, sep=" ")
-#     if os.path.exists(cwd + rel_aux_path + filename + "_genome_removed.ids"): 
-#         remove_ids.to_csv(cwd + rel_aux_path + filename + "_genome_removed.ids", mode = "a", header = False, index = False, sep=" ")
-#     else:
-#         remove_ids.to_csv(cwd + rel_aux_path + filename + "_genome_removed.ids", mode = "w", header = False, index = False, sep=" ")
-    
-        
 
 def qc(filename):
     sys.stdout = sys.__stdout__

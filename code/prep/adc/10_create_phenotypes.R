@@ -201,6 +201,10 @@ for (i in ord_vars_0_1_2_3_8_9_neg4) {
   np[ get(i) %in% 2:3, (paste0(i, "_bin")) := 1]
 }
 
+# a few variables don't have enough moderate + severe or
+# 2 + 3+, so need to dichotomize at 0 | 1 2 3
+np[NPOLD3 := 1, NPOLD3_bin := 1]
+
 #-------------------
 # create new object
 #-------------------
