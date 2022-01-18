@@ -9,7 +9,7 @@ dot_genome <- cl_args[1] # .genome file from PLINK
 np_path <- cl_args[2] # file with participants
 phenotype <- cl_args[3] # phenotype
 
-dir_path <- "data/related_rm"
+dir_path <- "data/adc/related_rm"
 if (!dir.exists(dir_path)) {
   dir.create(dir_path, recursive = TRUE)
 }
@@ -50,6 +50,3 @@ fwrite(id_remove,
        col.names = FALSE, 
        quote = FALSE,
        sep = " ")
-
-rm(list = ls())
-p_unload(all)

@@ -6,8 +6,8 @@
 library(pacman)
 p_load(data.table, magrittr)
 
-np <- readRDS("data/np.Rds")
-covar <- fread("data/plink/adc_np.covar")
+np <- readRDS("data/adc/np.Rds")
+covar <- fread("data/adc/adc_np.covar")
 np <- np[IID %in% covar$IID]
 
 apply_exclusion_criteria <- function(dt) {
@@ -203,14 +203,14 @@ for (i in ord_vars_0_1_2_3_8_9_neg4) {
 
 # a few variables don't have enough moderate + severe or
 # 2 + 3+, so need to dichotomize at 0 | 1 2 3
-np[NPOLD3 := 1, NPOLD3_bin := 1]
+np[NPOLD3 == 1, NPOLD3_bin := 1]
 
 #-------------------
 # create new object
 #-------------------
 
 # qced data set
-saveRDS(np, file = "data/np_qced.Rds")
+saveRDS(np, file = "data/adc/np_qced.Rds")
 
 # binary outcome variables for analysis
 pheno_vars <- c("FID", "IID", "ASC", "HS", "LATE", "ATHCW", "BRAAK", 
@@ -223,7 +223,7 @@ pheno_vars <- c("FID", "IID", "ASC", "HS", "LATE", "ATHCW", "BRAAK",
                 ord_vars_0_1_2_3_8_9_neg4_bin)
 
 fwrite(np[, ..pheno_vars][, -..exclusion_vars], 
-       file = "data/plink/adc_np.pheno",
+       file = "data/adc/adc_np.pheno",
        quote = FALSE,
        sep = " ",
        na = -1)
@@ -237,7 +237,7 @@ ordinal_vars <- c("FID", "IID",
 )
 
 fwrite(np[, ..ordinal_vars][, -..exclusion_vars],
-       file = "data/adc_np_ord.txt",
+       file = "data/adc/adc_np_ord.txt",
        quote = FALSE, 
        sep = " ", 
        na = -1)

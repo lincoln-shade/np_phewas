@@ -3,18 +3,12 @@
 #=====================================
 # prep for PC-AiR on related data set
 #=====================================
-prefix=adc
+prefix=rosmap
 prefix_out="$prefix"_np
-# keep only european subjects
-plink \
-  --bfile tmp/"$prefix"_qc1.tmp \
-  --keep data/"$prefix"/ids_qced.txt \
-  --make-bed \
-  --out tmp/"$prefix"_qc3.tmp
 
 # one final pass at variant QC
 plink \
-  --bfile tmp/"$prefix"_qc3.tmp \
+  --bfile tmp/"$prefix"_3 \
   --maf 0.05 \
   --geno 0.05 \
   --hwe 1e-6 midp include-nonctrl \

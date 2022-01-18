@@ -3,4 +3,4 @@
 #====================
 # find related pairs
 #====================
-plink --bfile data/plink/adc_np_pruned --genome --min 0.18 --out data/plink/adc_np
+plink --bfile data/adc/adc_np_pruned --genome --min 0.18 --out data/adc/adc_np

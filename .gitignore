@@ -43,3 +43,4 @@ vignettes/*.pdf
 /raw_data
 /doc
 /output
+/tmp

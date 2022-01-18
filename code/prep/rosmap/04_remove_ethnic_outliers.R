@@ -11,7 +11,7 @@ otg <- fread("/data_global/1000g/integrated_call_samples_v3.20130502.ALL.panel")
   .[, sample, super_pop]
 
 # PCA data
-merged <- fread("tmp/adc_1000g_merged_pca.eigenvec", header = F) %>% 
+merged <- fread("tmp/rosmap_1000g_merged_pca.eigenvec", header = F) %>% 
   .[, 2:4] %>% 
   setnames(., c("V2", "V3", "V4"), c("sample", "PC1", "PC2")) %>% 
   .[, PC1.norm := scale(PC1)] %>% 
@@ -28,7 +28,7 @@ if (otg.merged[super_pop == "EUR", mean(PC2.norm)] < 0) {otg.merged[, `:=`(PC2 =
 #ggplot of first 2 normalized PCs
 pca.plot <- ggplot(otg.merged, aes(PC1.norm, PC2.norm, color = as.factor(super_pop))) +
   geom_point() +
-  ggtitle("PCA of 1000 Genomes and adc participants") 
+  ggtitle("PCA of 1000 Genomes and ROSMAP participants") 
 
 # create objects for mean values for EUR PC1 and PC2 and create selection criteria based off them
 
@@ -85,10 +85,11 @@ otg.merged <-
                    ) == T, TRUE, FALSE)
   ]
 
-adc <- otg.merged[include == T, ]
-adc_ids <- fread("tmp/np_ids.tmp", header = F)
-adc_ids <- adc_ids[V2 %in% adc$sample]
+study <- otg.merged[include == T, ]
+study_ids <- fread("data/rosmap/np_ids.txt", header = F)
+study_ids <- study_ids[V2 %in% study$sample]
+study_ids[, V1 := 1]
 
-ggsave(filename = "doc/adc_1000g_pca.png", pca.plot2, units="in", width=7, height=7)
+ggsave(filename = "doc/rosmap_1000g_pca.png", pca.plot2, units="in", width=7, height=7)
 
-write.table(adc_ids, "data/adc/ids_qced.txt", col.names = F, row.names = F, quote = F)
+write.table(study_ids, "data/rosmap/ids_qced.txt", col.names = F, row.names = F, quote = F)

@@ -3,10 +3,10 @@
 #================================
 # Step 3: Remove ethnic outliers
 #================================
-prefix=adc
+prefix=rosmap
 
 # merge adc and 1000g filesets
-python code/prep/merge_plink_filesets.py -b tmp/adc_qc1.tmp -b1 data/1000g/1000g -o tmp/adc_1000g_merged
+python code/prep/merge_plink_filesets.py -b tmp/"$prefix"_2 -b1 data/1000g/1000g -o tmp/"$prefix"_1000g_merged
 
 # prune
 plink \

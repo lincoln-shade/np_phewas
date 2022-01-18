@@ -2,31 +2,24 @@
 # perform PC-AiR and create covar file
 #==============================================================
 
-library(pacman)
-p_load(data.table, GENESIS, SNPRelate)
+
+pacman::p_load(data.table, GENESIS, SNPRelate)
 
 #-----------
 # PC-AiR
 #-----------
-# (mostly taken from here: https://www.bioconductor.org/packages/release/bioc/vignettes/GENESIS/inst/doc/pcair.html)
-gdsfile <- "data/tmp/pcair.gds"
-plink_path <- "data/plink/adc_np_pruned"
+# mostly taken from here: 
+# https://www.bioconductor.org/packages/release/bioc/vignettes/GENESIS/inst/doc/pcair.html
+gdsfile <- "tmp/pcair.gds"
+plink_path <- "data/adc/adc_np_pruned"
 snps <- fread(paste0(plink_path, ".bim"))
 snpgdsBED2GDS(bed.fn = paste0(plink_path, ".bed"),
               bim.fn = paste0(plink_path, ".bim"),
               fam.fn = paste0(plink_path, ".fam"),
               out.gdsfn = gdsfile)
 
-# # create list of uncorrelated SNPs
-# 
-# gds <- snpgdsOpen(gdsfile)
-# snpset <- snpgdsLDpruning(gds, method="corr", slide.max.bp=10e6, 
-#                           ld.threshold=sqrt(0.1), verbose = TRUE)
-# pruned <- unlist(snpset, use.names=FALSE)
-# snpgdsClose(gds)
-
-# create kinship matric
-KINGmat <- kingToMatrix("data/adc_np.kin", estimator = "Kinship")
+# create kinship matrix
+KINGmat <- kingToMatrix("data/adc/adc_np.kin", estimator = "Kinship")
 
 geno <- GWASTools::GdsGenotypeReader(filename = gdsfile)
 
@@ -39,9 +32,9 @@ setnames(pcs, colnames(pcs), c("IID", "PC1", "PC2", "PC3", "PC4", "PC5"))
 # create pheno analysis data set
 #---------------------------------
 
-np <- readRDS("data/np.Rds")
+np <- readRDS("data/adc/np.Rds")
 # variables to keep
-vars <- c("FID", "IID", "NPSEX", "npDAGE")
+vars <- c("FID", "IID", "NPSEX", "NACCDAGE")
 
 np <- np[, ..vars]
 np <- merge(np, pcs[, 1:6], by = "IID")
@@ -51,7 +44,7 @@ setcolorder(np, "FID")
 ##--------------------------------------------
 
 # load ADGC cohort file
-adc <- fread("data/adc_ids_adgc.txt")
+adc <- fread("data/adc/adc_ids_adgc.txt")
 
 np <- merge(np, adc[, .(V2, V3)], by.x = "IID", by.y = "V2") # merge data
 setnames(np, "V3", "adgc_adc")
@@ -62,7 +55,8 @@ np <- np[!duplicated(IID)]
 adgc_adc <- table(np$adgc_adc, useNA = "a")
 adgc_adc #check to see no NA
 adgc_adc <- adgc_adc[-length(adgc_adc)] # remove NA index
-adgc_adc <- adgc_adc[-(which(adgc_adc == max(adgc_adc)))] # remove the largest adgc_adc group so that is is the "control" group without an indicator
+# remove the largest adgc_adc group so that is is the reference group
+adgc_adc <- adgc_adc[-(which(adgc_adc == max(adgc_adc)))] 
 
 adgc_adc.names <- names(adgc_adc)
 
@@ -80,7 +74,5 @@ setcolorder(np, "FID")
 ## write pheno files
 ##--------------------
 # ordinal
-fwrite(np, file = "data/plink/adc_np.covar", sep = " ", quote = FALSE)
+fwrite(np, file = "data/adc/adc_np.covar", sep = " ", quote = FALSE)
 
-rm(list = ls())
-p_unload(all)

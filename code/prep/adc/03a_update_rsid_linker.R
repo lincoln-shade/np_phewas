@@ -4,7 +4,7 @@
 
 library(data.table)
 library(stringi)
-bim <- fread("data/tmp/adc_np_uniq_varid.bim")
+bim <- fread("tmp/adc_np_uniq_varid.bim")
 rsid <- fread("raw_data/common_snps.txt", skip = 2)
 rsid[, V1 := as.integer(stri_replace_first_fixed(V1, "chr", ""))]
 rsid[, V2 := V2 + 1]
@@ -15,18 +15,24 @@ identical(alt_a1[, paste0(V1, ",", V2, ",")], rsid[V5 == 2, V6])
 rsid[V5 == 2, V6 := ..alt_a1$V1]
 rsid[V5 == 2, V7 := ..alt_a1$V2]
 
-rsid_linker <- merge(bim, rsid[V5 %in% 1:2], by.x = c("V1", "V4"), by.y = c("V1", "V2"), all.x = TRUE, suffixes = c("bim", "rsid"))
+rsid_linker <- merge(bim, 
+                     rsid[V5 %in% 1:2], 
+                     by.x = c("V1", "V4"), 
+                     by.y = c("V1", "V2"), 
+                     all.x = TRUE, 
+                     suffixes = c("bim", "rsid"))
+
 rsid_linker_use <- rsid_linker[((V6bim == V4rsid) & (V5bim == V6rsid)) |
                                  ((V6bim == V6rsid) & (V5bim == V4rsid)) |
                                  ((V6bim == V4rsid) & (V5bim == V7)) |
                                  ((V6bim == V7) & (V5bim == V4rsid)) |
                                  ((V6bim == V7) & (V5bim == V6rsid)) |
                                  ((V6bim == V6rsid) & (V5bim == V7))
-                                 , ]
+                               , ]
 rsid_linker_use[, V3rsid := paste0(V3rsid, ":", V6bim, ":", V5bim)]
 fwrite(rsid_linker_use[!(duplicated(V2)), .(V2, V3rsid)], 
-       file = "data/tmp/rsid_linker.tmp", 
+       file = "tmp/rsid_linker.tmp", 
        col.names = FALSE, 
        quote = FALSE, 
        sep = " "
-       )
+)

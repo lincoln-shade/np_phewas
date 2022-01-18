@@ -3,23 +3,15 @@
 library(data.table)
 library(magrittr)
 
-format_results <- function(phenotype) {
-  results <- fread(paste0("output/gwas_results/adc_np_", phenotype, ".assoc.logistic"))
+file_name <- "output/act/ge_atherosclerosis_id_bin.assoc.logistic"
+format_results <- function(file_name) {
+  results <- fread(file_name)
   results <- results %>% 
     .[!(is.na(P))] %>% 
     setorder(P)
 }
 
-pheno <- fread("data/plink/adc_np.pheno")
-
-for (i in colnames(pheno)[3:ncol(pheno)]) {
-  assign(i, format_results(i) %>% head())
+merge_results <- function(dt1, dt2, suf = c("_adc", "_act")) {
+  merge(dt1, dt2, by = c("CHR", "BP", "A1", "SNP"), suffixes = suf)
 }
-
-for (i in colnames(pheno)[3:ncol(pheno)]) {
-  if (nrow(get(i)) == 0) {
-    rm(list = paste(i))
-  }
-}
-
 
