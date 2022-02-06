@@ -3,6 +3,7 @@
 #=====================
 
 library(data.table)
+library(magrittr)
 library(readxl)
 
 rosmap <- as.data.table(read_excel(
@@ -20,8 +21,8 @@ rosmap_np <- merge(ids[, .(FID, IID)],
 ordinal_vars <- c('arteriol_scler', 'cvda_4gp2', 'tdp_st4', 'dlbdx',
                   'ceradsc', 'niareagansc', 'caa_4gp', 'braaksc')
 binary_vars <- c('ci_num2_gct', 'ci_num2_mct', 'hspath_typ')
-log_transform_vars <- c('nft', 'tangles', 'plaq_d', 'amyloid', 'gpath')
-keep_vars <- c('FID', 'IID', binary_vars, ordinal_vars, log_transform_vars)
+# log_transform_vars <- c('nft', 'tangles', 'plaq_d', 'amyloid', 'gpath')
+
 
 # dichotomize ordinal variables
 # using RADC codebook recommendations if present
@@ -47,4 +48,23 @@ rosmap_np[!is.na(caa_4gp),
           caa_4gp_bin := ifelse(caa_4gp < 2, 0, 1)] 
 
 rosmap_np[!is.na(braaksc), 
-          braaksc56 := ifelse(braaksc < 5, 0, 1)] 
+          braaksc_bin := ifelse(braaksc < 5, 0, 1)] 
+
+# log_var <- function(x) {
+#   rosmap_np[, (paste0(x, '_log')) := log(get(x) + 0.01)]
+# } 
+# 
+# for (v in log_transform_vars) {
+#   log_var(v)
+# }
+bin_ord_vars <- paste0(ordinal_vars, "_bin")
+keep_vars <- c('FID', 'IID', binary_vars, bin_ord_vars)
+rosmap_np <- rosmap_np[, ..keep_vars]
+index_keep <- rosmap_np[, -c('FID', 'IID')][, rowSums(is.na(.SD)) != ncol(.SD)]
+rosmap_np <- rosmap_np[index_keep]
+
+fwrite(rosmap_np, 
+       file = 'data/rosmap/rosmap_np.pheno',
+       quote = FALSE,
+       sep = ' ',
+       na = '-1')

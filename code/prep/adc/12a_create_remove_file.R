@@ -25,7 +25,7 @@ related.long <- melt.data.table(related, measure.vars = c("IID1", "IID2"), value
 
 np <- readRDS(np_path)
 setnames(np, paste(phenotype), "phenotype")
-covar <- fread("data/plink/adc_np.covar")
+covar <- fread("data/adc/adc_np.covar")
 np <- np[IID %in% covar$IID]
 related_pheno <- merge(np[, .(FID, IID, phenotype)], related.long, by = "IID")
 

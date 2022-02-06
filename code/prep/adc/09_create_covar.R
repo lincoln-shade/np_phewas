@@ -1,43 +1,23 @@
 #==============================================================
-# perform PC-AiR and create covar file
+# reate covar file
 #==============================================================
-
-
-pacman::p_load(data.table, GENESIS, SNPRelate)
-
-#-----------
-# PC-AiR
-#-----------
-# mostly taken from here: 
-# https://www.bioconductor.org/packages/release/bioc/vignettes/GENESIS/inst/doc/pcair.html
-gdsfile <- "tmp/pcair.gds"
-plink_path <- "data/adc/adc_np_pruned"
-snps <- fread(paste0(plink_path, ".bim"))
-snpgdsBED2GDS(bed.fn = paste0(plink_path, ".bed"),
-              bim.fn = paste0(plink_path, ".bim"),
-              fam.fn = paste0(plink_path, ".fam"),
-              out.gdsfn = gdsfile)
-
-# create kinship matrix
-KINGmat <- kingToMatrix("data/adc/adc_np.kin", estimator = "Kinship")
-
-geno <- GWASTools::GdsGenotypeReader(filename = gdsfile)
-
-mypcair <- pcair(geno, kinobj = KINGmat, divobj = KINGmat, snp.include = snps$V2)
-
-pcs <- as.data.table(mypcair$vectors[, 1:5], keep.rownames = TRUE)
-setnames(pcs, colnames(pcs), c("IID", "PC1", "PC2", "PC3", "PC4", "PC5"))
-
-#---------------------------------
-# create pheno analysis data set
-#---------------------------------
+pacman::p_load(data.table, GENESIS, SNPRelate, stringi)
+load('data/adc/mypcair.Rdata')
+n_pcs <- 10
+pcs <- as.data.table(mypcair$vectors[, 1:(min(32, n_pcs))], 
+                     keep.rownames = TRUE)
+colnames(pcs) <- stri_replace_all_fixed(colnames(pcs), 'V', 'pc')
+setnames(pcs, 'rn', 'IID')
 
 np <- readRDS("data/adc/np.Rds")
 # variables to keep
 vars <- c("FID", "IID", "NPSEX", "NACCDAGE")
 
 np <- np[, ..vars]
-np <- merge(np, pcs[, 1:6], by = "IID")
+np[, msex := ifelse(NPSEX == 2, 0, NPSEX)]
+np[, age_death2 := NACCDAGE^2]
+setnames(np, 'NACCDAGE', 'age_death')
+np <- merge(np[, .(FID, IID, msex, age_death, age_death2)], pcs, by = "IID")
 setcolorder(np, "FID")
 ##--------------------------------------------
 ## add indicator variables for ADGC cohorts 

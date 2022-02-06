@@ -10,77 +10,61 @@ library(magrittr)
 act <- as.data.table(read_xlsx("raw_data/act/DataForE235_20210421.xlsx",
                                sheet = 2))
 
-act_fam <- fread("data/plink/act_np.fam") %>% 
+act_fam <- fread("data/act/act_np.fam") %>% 
   setnames(., c("V1", "V2"), c("FID", "IID"))
 
-adc <- fread("data/plink/adc_np.pheno")
+adc <- fread("data/adc/adc_np.pheno")
 
-act_phenos_in_nacc <- c("any_macro", 
-                        "calc_haas_cerebralmicroinfarcts",
-                        "calc_haas_deepgraymicroinfarcts",
-                        # "ap_freshbrainweight",
-                        "micro_arteriolosclerosis_id",
-                        "any_hs",
-                        "braak56",
-                        "ge_atherosclerosis_id", 
-                        "cerad23")
+# acts_in_nacc <- c("any_macro", 
+#                         "calc_haas_cerebralmicroinfarcts",
+#                         "calc_haas_deepgraymicroinfarcts",
+#                         "micro_arteriolosclerosis_id",
+#                         "any_hs",
+#                         "braak56",
+#                         "ge_atherosclerosis_id", 
+#                         "cerad23", 
+#                         'any_lb4')
+# 
+# nacc_phenos_in_act <- c("NPINF",
+#                         "NPOLD1",
+#                         "NPOLD3",
+#                         "ASC", 
+#                         "HS",
+#                         "BRAAK",
+#                         "ATHCW",
+#                         "NEUR",
+#                         'NACCLEWY')
 
-nacc_phenos_in_act <- c("NPINF",
-                        "NPOLD1",
-                        "NPOLD3",
-                        # "NPWBRWT", # continuous, not in pheno file
-                        "ASC", 
-                        "HS",
-                        "BRAAK",
-                        "ATHCW",
-                        "NEUR")
+# brain arterioloscerosis binary None or Mild vs. Moderate or Severe
+act[micro_arteriolosclerosis_id < 3, 
+          asc_bin := 0]
 
-act_pheno <- act[, c("IDfromDave", ..act_phenos_in_nacc)]
+act[micro_arteriolosclerosis_id >= 3, 
+          asc_bin := 1]
 
-act_pheno[calc_haas_cerebralmicroinfarcts == 0, 
-          calc_haas_cerebralmicroinfarcts_bin := 0]
+# Atherosclerosis binary None or Mild vs. Moderate or Severe
+act[ge_atherosclerosis_id < 3, 
+          ath_bin := 0]
 
-act_pheno[calc_haas_cerebralmicroinfarcts > 0, 
-          calc_haas_cerebralmicroinfarcts_bin := 1]
+act[ge_atherosclerosis_id >= 3,
+          ath_bin := 1]
 
-act_pheno[calc_haas_deepgraymicroinfarcts == 0, 
-          calc_haas_deepgraymicroinfarcts_bin := 0]
+# Cerebral amyloid angiopathy binary None vs. Mild, Moderate, or Severe
+act[micro_amyloidangiopathyoccipital == 1, caa_bin := 0]
+act[micro_amyloidangiopathyoccipital %in% 2:4, caa_bin := 1]
 
-act_pheno[calc_haas_deepgraymicroinfarcts > 0, 
-          calc_haas_deepgraymicroinfarcts_bin := 1]
+act <- act[, .(IDfromDave, any_hs, any_mvl, any_macro, any_lb4, asc_bin, 
+               ath_bin, cerad23, braak56, caa_bin)]
+setnames(act, "IDfromDave", "IID")
 
-act_pheno[micro_arteriolosclerosis_id < 3, 
-          micro_arteriolosclerosis_id_bin := 0]
-
-act_pheno[micro_arteriolosclerosis_id >= 3, 
-          micro_arteriolosclerosis_id_bin := 1]
-
-act_pheno[ge_atherosclerosis_id < 3, 
-          ge_atherosclerosis_id_bin := 0]
-
-act_pheno[ge_atherosclerosis_id >= 3,
-          ge_atherosclerosis_id_bin := 1]
-
-setnames(act_pheno, "IDfromDave", "IID")
-
-act_pheno <- act_pheno[, .(IID, 
-                           any_macro, 
-                           calc_haas_cerebralmicroinfarcts_bin, 
-                           calc_haas_deepgraymicroinfarcts_bin, 
-                           micro_arteriolosclerosis_id_bin,
-                           any_hs, 
-                           braak56, 
-                           ge_atherosclerosis_id_bin, 
-                           cerad23)]
-
-act_pheno <- merge(act_fam[, .(FID, IID)], act_pheno, "IID")
-setcolorder(act_pheno, "FID")
+act <- merge(act_fam[, .(FID, IID)], act, "IID")
+setcolorder(act, "FID")
 
 # IIDs missing cerad23 are also missing all other phenotypes, so remove those
-act_pheno <- act_pheno[!(is.na(cerad23))]
+act <- act[!(is.na(cerad23))]
 
-fwrite(act_pheno,
-       file = "data/plink/act_np.pheno",
+fwrite(act,
+       file = "data/act/act_np.pheno",
        quote = FALSE, 
        sep = " ", 
        na = -1)

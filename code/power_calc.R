@@ -11,8 +11,8 @@ library(data.table)
 library(scales)
 
 # NACC + ROSMAP + ACT + ADNI approx. N
-n_case <- 2412
-n_control <- 3773
+n_case <- 2479
+n_control <- 3878
 n <- n_case + n_control
 case_rate <- n_case / n
 n_tests <- 1000000

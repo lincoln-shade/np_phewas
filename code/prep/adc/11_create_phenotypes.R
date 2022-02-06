@@ -159,7 +159,6 @@ quick_table <- function(phenotype) {
 # HS binary
 np[NPHIPSCL == 0 | NPSCL == 0, HS := 0]
 np[NPHIPSCL %in% 1:3 | NPSCL == 1, HS := 1]
-# np[NPHIPSCL == 2, HS := 2]
 
 # B-ASC binary
 np[NACCARTE %in% 0:1, ASC := 0]
@@ -177,7 +176,7 @@ np[NACCAVAS %in% 1:3, ATHCW := 1]
 np[NACCBRAA %in% 0:4, BRAAK := 0]
 np[NACCBRAA %in% 5:6, BRAAK := 1]
 
-# Density of neocorical neuritic plaques (C score)
+# Density of neocortical neuritic plaques (C score)
 np[NACCNEUR %in% 0:2, NEUR := 0]
 np[NACCNEUR %in% 3, NEUR := 1]
 
@@ -203,7 +202,12 @@ for (i in ord_vars_0_1_2_3_8_9_neg4) {
 
 # a few variables don't have enough moderate + severe or
 # 2 + 3+, so need to dichotomize at 0 | 1 2 3
+np[NPOLD1 == 1, NPOLD1_bin := 1]
+np[NPOLD2 == 1, NPOLD2_bin := 1]
 np[NPOLD3 == 1, NPOLD3_bin := 1]
+
+# whole brain weight (g)
+np[as.vector(abs(scale(NPWBRWT)) < 3), brain_wt := NPWBRWT]
 
 #-------------------
 # create new object
@@ -214,7 +218,7 @@ saveRDS(np, file = "data/adc/np_qced.Rds")
 
 # binary outcome variables for analysis
 pheno_vars <- c("FID", "IID", "ASC", "HS", "LATE", "ATHCW", "BRAAK", 
-                "DIFF", "CAA", "LEWY", 
+                "DIFF", "CAA", "LEWY", "NEUR", 
                 bin_vars_0_1_8_9_neg4, 
                 bin_vars_0_1_8_9, 
                 bin_vars_0_1_9, 
@@ -224,6 +228,13 @@ pheno_vars <- c("FID", "IID", "ASC", "HS", "LATE", "ATHCW", "BRAAK",
 
 fwrite(np[, ..pheno_vars][, -..exclusion_vars], 
        file = "data/adc/adc_np.pheno",
+       quote = FALSE,
+       sep = " ",
+       na = -1)
+
+# continuous variables (brain_wt)
+fwrite(np[, .(FID, IID, brain_wt)], 
+       file = "data/adc/adc_np_cont.pheno",
        quote = FALSE,
        sep = " ",
        na = -1)
