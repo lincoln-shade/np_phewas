@@ -53,15 +53,19 @@ act[ge_atherosclerosis_id >= 3,
 act[micro_amyloidangiopathyoccipital == 1, caa_bin := 0]
 act[micro_amyloidangiopathyoccipital %in% 2:4, caa_bin := 1]
 
+# CERAD score binary None, Sparse, Moderate vs. Severe
+act[cerad %in% 0:2, cerad3 := 0]
+act[cerad %in% 3, cerad3 := 1]
+
 act <- act[, .(IDfromDave, any_hs, any_mvl, any_macro, any_lb4, asc_bin, 
-               ath_bin, cerad23, braak56, caa_bin)]
+               ath_bin, cerad3, braak56, caa_bin)]
 setnames(act, "IDfromDave", "IID")
 
 act <- merge(act_fam[, .(FID, IID)], act, "IID")
 setcolorder(act, "FID")
 
 # IIDs missing cerad23 are also missing all other phenotypes, so remove those
-act <- act[!(is.na(cerad23))]
+act <- act[!(is.na(cerad3))]
 
 fwrite(act,
        file = "data/act/act_np.pheno",

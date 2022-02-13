@@ -1,5 +1,5 @@
 #==============================================================
-# reate covar file
+# Create covar file
 #==============================================================
 pacman::p_load(data.table, GENESIS, SNPRelate, stringi)
 load('data/adc/mypcair.Rdata')
@@ -50,9 +50,6 @@ for (i in 1:length(adgc_adc.names)) {
 
 np <- np[, -"adgc_adc"]
 setcolorder(np, "FID")
-##--------------------
-## write pheno files
-##--------------------
-# ordinal
+
 fwrite(np, file = "data/adc/adc_np.covar", sep = " ", quote = FALSE)
 

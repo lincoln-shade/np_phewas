@@ -6,7 +6,8 @@ library(pacman)
 p_load(data.table, magrittr, MASS, brant)
 
 
-#.raw file from regression.sh output with variant minor allele values for each participant
+#.raw file from regression.sh output with variant minor allele 
+#values for each participant
 raw <- fread("02_analysis/ordinal/top.snps.raw") 
 
 # file with other variables for each participant
@@ -16,10 +17,12 @@ load("01_data/data/nacc.ordinal.RData")
 regression.data <- merge(nacc.ordinal, raw, by = c("FID", "IID"))
 n.cols <- ncol(regression.data)
 
-# skip number of columns in nacc.ordinal and the first 4 non-merge-by columns in raw to get to genetic variant columns
+# skip number of columns in nacc.ordinal and the first 4 non-merge-by columns 
+# in raw to get to genetic variant columns
 skip.col <- ncol(nacc.ordinal) + 4 
 
-# replace colons with periods in SNP names, as colons in variable names messes up polr regression
+# replace colons with periods in SNP names, as colons in variable names 
+# messes up polr regression
 subColons <- function(x) { 
   x <- gsub(":", ".", x)
 }

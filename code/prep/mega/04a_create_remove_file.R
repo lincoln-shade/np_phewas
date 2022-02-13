@@ -7,9 +7,9 @@ p_load(data.table, magrittr, stringi)
 cl_args <- commandArgs(trailingOnly = TRUE)
 dot_genome <- cl_args[1] # .genome file from PLINK
 np_path <- cl_args[2] # file with participants
-phenotype <- cl_args[3] # phenotype
+dir_path <- cl_args[3] # directory for output file
+phenotype <- cl_args[4] # phenotype
 
-dir_path <- "data/related_rm"
 if (!dir.exists(dir_path)) {
   dir.create(dir_path, recursive = TRUE)
 }
@@ -23,9 +23,9 @@ ids <- rbind(related[, .(FID1, IID1)] %>%
 related <- related[, .(IID1, IID2, pair, PI_HAT)]
 related.long <- melt.data.table(related, measure.vars = c("IID1", "IID2"), value.name = "IID")
 
-np <- readRDS(np_path)
+np <- fread(np_path, na.strings = '-1')
 setnames(np, paste(phenotype), "phenotype")
-covar <- fread("data/plink/adc_np.covar")
+covar <- fread("data/mega/mega_np.covar")
 np <- np[IID %in% covar$IID]
 related_pheno <- merge(np[, .(FID, IID, phenotype)], related.long, by = "IID")
 
@@ -50,6 +50,3 @@ fwrite(id_remove,
        col.names = FALSE, 
        quote = FALSE,
        sep = " ")
-
-rm(list = ls())
-p_unload(all)

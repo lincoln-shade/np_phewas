@@ -3,7 +3,13 @@
 library(data.table)
 library(magrittr)
 
-file_name <- "output/act/ge_atherosclerosis_id_bin.assoc.logistic"
+pheno <- fread("data/mega/mega_np.pheno")
+phenotypes <- colnames(pheno)[3:length(colnames(pheno))]
+
+file_path <- function(phenotype, prefix="output/gwas/mega") {
+  paste0(prefix, '/', phenotype, '.assoc.logistic')
+}
+
 format_results <- function(file_name) {
   results <- fread(file_name)
   results <- results %>% 
@@ -11,7 +17,14 @@ format_results <- function(file_name) {
     setorder(P)
 }
 
-merge_results <- function(dt1, dt2, suf = c("_adc", "_act")) {
-  merge(dt1, dt2, by = c("CHR", "BP", "A1", "SNP"), suffixes = suf)
+for (phenotype in phenotypes) {
+  assign(phenotype, format_results(file_path(phenotype)))
 }
 
+for (phenotype in phenotypes) {print(head(get(phenotype)[CHR != 19]))}
+
+get_snp <- function(dt, chr, snp) {
+  dt[CHR == chr][SNP == snp]
+}
+
+for (phenotype in phenotypes) {get_snp(phenotype, 2, 'rs6733839')}

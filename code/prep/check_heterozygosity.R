@@ -7,9 +7,9 @@ library(data.table)
 library(argparse)
 
 parser <- ArgumentParser()
-parser$add_argument("-f", "--file", action="store_true",
+parser$add_argument("-f", "--file",
                     help="PLINK .het file path")
-parser$add_argument("-o", "--out", action="store_true",
+parser$add_argument("-o", "--out",
                     help="Output file path")
 args <- parser$parse_args()
 

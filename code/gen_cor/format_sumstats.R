@@ -1,4 +1,4 @@
-#!/bin/Rscript --vanilla
+#!/usr/bin/Rscript --vanilla
 
 #=====================================
 # Format plink .assoc.logistic file
@@ -6,7 +6,10 @@
 # Predictor A1 A2 Z
 #=====================================
 
-pacman::p_load(data.table, magrittr, stringi, rtracklayer)
+library(data.table)
+library(magrittr)
+library(stringi)
+library(rtracklayer)
 
 args <- commandArgs(trailingOnly = TRUE)
 bim_path <- args[1]
@@ -85,6 +88,3 @@ sumstats <- sumstats[, .(Predictor, A1, A2, n, Z)]
 sumstats <- sumstats[!(Predictor %in% Predictor[duplicated(Predictor)])]
 
 fwrite(sumstats, file = out_path, quote = F, sep = " ")
-
-rm(list = ls())
-pacman::p_unload(all)
