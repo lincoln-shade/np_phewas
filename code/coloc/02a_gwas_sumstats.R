@@ -4,8 +4,15 @@
 ## prepare b-asc data for coloc analysis
 ##=======================================
 
-library(pacman)
-p_load(data.table, magrittr, rtracklayer, GEOquery, GENESIS, GWASTools, qusage, SeqArray, SNPRelate)
+library(data.table)
+library(magrittr)
+library(rtracklayer)
+library(GEOquery)
+library(GENESIS)
+library(GWASTools)
+library(qusage)
+library(SeqArray)
+library(SNPRelate)
 source("code/functions/strip_alleles.R")
 
 # commandline arguments
@@ -21,10 +28,12 @@ args <- commandArgs(trailingOnly = T)
 ##------------------
 
 # GWAS pheno file
-pheno <- fread(args[1])
+pheno <- fread(args[1], na.strings = '-1')
 # proportion of participants who were cases
 gwas_phenotype <- args[5]
-proportion.cases <- pheno[get(gwas_phenotype) == 1, .N] / pheno[get(gwas_phenotype) == 0, .N]
+n_cases <- pheno[get(gwas_phenotype) == 1, .N]
+n_controls <- pheno[get(gwas_phenotype) == 0, .N]
+proportion.cases <- n_cases / (n_cases + n_controls) 
 
 # MAF data
 gwas.maf <- fread(paste0(args[2]))
@@ -97,5 +106,3 @@ gwas <- unique(gwas)
 
 save(gwas, file = paste0("data/tmp/chr", args[4], "_gwas_sumstats_", gwas_phenotype, ".RData"))
 
-# rm(list=ls())
-# p_unload(all)

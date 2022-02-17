@@ -3,8 +3,9 @@
 # arg1 should be the GTEx tissue (as it appears in files names)
 #===============================================================
 
-library(pacman)
-p_load(data.table, magrittr, coloc)
+library(data.table)
+library(magrittr)
+library(coloc)
 # new
 # args[1] = p12
 # args[2] = phenotype_id
@@ -22,13 +23,12 @@ chr_args <- args[6]
 gwas_qtl <- fread(paste0("data/tmp/chr", chr_args, "_", phenotype_id_args, "_", tissue_args, "_gwas_qtl", gwas_phenotype, ".tmp"))
 gwas_qtl <- gwas_qtl[!duplicated(gwas_qtl$SNP)]
 
-lead.pos <- gwas_qtl[P_gwas == min(P_gwas), BP_hg38]
+lead.pos <- gwas_qtl[P_gwas == min(P_gwas), BP_hg38][1]
 lead_snp <- gwas_qtl[BP_hg38 == lead.pos, SNP]
 window.radius <- 2e5
 
 gwas_qtl <- gwas_qtl[BP_hg38 > lead.pos - window.radius & 
-                       BP_hg38 < lead.pos + window.radius
-]
+                       BP_hg38 < lead.pos + window.radius]
 
 
 results <- coloc.abf(

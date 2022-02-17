@@ -1,8 +1,10 @@
 ##-----------------------------------
 ## Tidy QTL files for input SNPs
 ##-----------------------------------
-library(pacman)
-p_load(data.table, magrittr, stringi)
+
+library(data.table)
+library(magrittr)
+library(stringi)
 args <- commandArgs(trailingOnly = TRUE)
 phenotype <- args[3]
 qtls <- fread(args[1], header = F)

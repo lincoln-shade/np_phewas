@@ -5,8 +5,9 @@
 # [chr]_[bp_hg38]_[ref]_[alt]_b38 format
 #=========================================
 options(warn=-1, message=-1)
-library(pacman)
-p_load(data.table, magrittr, rentrez)
+library(data.table)
+library(magrittr)
+library(rentrez)
 source("code/functions/strip_alleles.R")
 variants <- fread("cat /dev/stdin", header = FALSE)$V1
 args <- commandArgs(trailingOnly = TRUE)

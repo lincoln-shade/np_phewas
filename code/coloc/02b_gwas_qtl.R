@@ -2,8 +2,17 @@
 # Prep data for coloc analysis
 #==============================================================================
 
-library(pacman)
-p_load(data.table, magrittr, stringi, rtracklayer, GEOquery, GENESIS, GWASTools, qusage, SeqArray, SNPRelate, arrow)
+library(data.table)
+library(magrittr)
+library(stringi)
+library(rtracklayer)
+library(GEOquery)
+library(GENESIS)
+library(GWASTools)
+library(qusage)
+library(SeqArray)
+library(SNPRelate)
+library(arrow)
 
 args <- commandArgs(trailingOnly = T)
 
