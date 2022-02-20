@@ -16,7 +16,7 @@ library(SNPRelate)
 source("code/functions/strip_alleles.R")
 
 # commandline arguments
-# args 1 = phenotype file (remember phenotype needs to be binary (0/1) and third column)
+# args 1 = phenotype file (phenotype needs to be binary (0/1) 
 # args 2 = minor allele frequency file .frq
 # args 3 = plink regression file .assoc.logistic
 # args 4 = chromosome integer
@@ -93,10 +93,12 @@ if (build == 19) {
   setnames(gwas.gr.liftover, "start", "BP_hg38")
   
   gwas <- merge(gwas, gwas.gr.liftover[, .(SNP, BP_hg38)], "SNP")
-  gwas <- gwas[, .(SNP, A1, CHR, BP_hg38, BP_hg19, MAF, P, beta, var.beta, NMISS, type, s)]
+  gwas <- gwas[, .(SNP, A1, CHR, BP_hg38, BP_hg19, MAF, P, beta, var.beta, 
+                   NMISS, type, s)]
 } else {
   setnames(gwas, "BP", "BP_hg38")
-  gwas <- gwas[, .(SNP, A1, CHR, BP_hg38, MAF, P, beta, var.beta, NMISS, type, s)]
+  gwas <- gwas[, .(SNP, A1, CHR, BP_hg38, MAF, P, beta, var.beta, NMISS, 
+                   type, s)]
 }
 
 # keep only required columns
@@ -104,5 +106,6 @@ setnames(gwas, c("MAF", "NMISS"), c("maf", "n"))
 gwas <- unique(gwas)
 
 
-save(gwas, file = paste0("data/tmp/chr", args[4], "_gwas_sumstats_", gwas_phenotype, ".RData"))
+save(gwas, file = paste0("data/tmp/chr", args[4], "_gwas_sumstats_", 
+                         gwas_phenotype, ".RData"))
 

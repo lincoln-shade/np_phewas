@@ -3,8 +3,8 @@
 # by outcome type, coding, etc.
 #==================================
 
-library(pacman)
-p_load(data.table, magrittr)
+library(data.table)
+library(magrittr)
 
 np <- readRDS("data/adc/np.Rds")
 covar <- fread("data/adc/adc_np.covar")
@@ -165,8 +165,9 @@ np[NACCARTE %in% 0:1, ASC := 0]
 np[NACCARTE %in% 2:3, ASC := 1]
 
 # LATE
+# np[NPTDPB == 0 | NPTDPC ==0 | NPTDPD == 0 | NPTDPE == 0, LATE := 0]
 np[NPTDPB == 0 | NPTDPC ==0 | NPTDPD == 0 | NPTDPE == 0, LATE := 0]
-np[NPTDPB == 1 | NPTDPC == 1 | NPTDPD == 1 | NPTDPE == 1, LATE := 1]
+np[NPTDPC == 1 | NPTDPD == 1 | NPTDPE == 1, LATE := 1]
 
 # Atherosclerosis in Circle of Willis
 np[NACCAVAS %in% 0, ATHCW := 0]

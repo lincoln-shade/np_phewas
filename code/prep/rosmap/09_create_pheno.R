@@ -39,7 +39,7 @@ rosmap_np[!is.na(dlbdx),
           dlbdx_bin := ifelse(dlbdx < 3, 0, 1)] # only neocort ass. w dementia
 
 rosmap_np[!is.na(ceradsc), 
-          ceradsc_bin := ifelse(ceradsc < 3, 0, 1)] # RADC rec
+          ceradsc_bin := ifelse(ceradsc > 2, 0, 1)] # RADC rec
 
 rosmap_np[!is.na(niareagansc), 
           niareagansc_bin := ifelse(niareagansc > 2, 0, 1)] # RADC rec
