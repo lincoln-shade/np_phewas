@@ -15,26 +15,6 @@ act_fam <- fread("data/act/act_np.fam") %>%
 
 adc <- fread("data/adc/adc_np.pheno")
 
-# acts_in_nacc <- c("any_macro", 
-#                         "calc_haas_cerebralmicroinfarcts",
-#                         "calc_haas_deepgraymicroinfarcts",
-#                         "micro_arteriolosclerosis_id",
-#                         "any_hs",
-#                         "braak56",
-#                         "ge_atherosclerosis_id", 
-#                         "cerad23", 
-#                         'any_lb4')
-# 
-# nacc_phenos_in_act <- c("NPINF",
-#                         "NPOLD1",
-#                         "NPOLD3",
-#                         "ASC", 
-#                         "HS",
-#                         "BRAAK",
-#                         "ATHCW",
-#                         "NEUR",
-#                         'NACCLEWY')
-
 # brain arterioloscerosis binary None or Mild vs. Moderate or Severe
 act[micro_arteriolosclerosis_id < 3, 
           asc_bin := 0]

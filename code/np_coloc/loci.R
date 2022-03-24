@@ -1,17 +1,18 @@
 library(data.table)
 library(magrittr)
+source('code/functions/plink2_to_plink_format.R')
 
 pheno <- fread("data/mega/mega_np.pheno")
 phenotypes <- colnames(pheno)[3:length(colnames(pheno))]
 
 file_path <- function(phenotype, prefix="output/gwas/mega") {
-  paste0(prefix, '/', phenotype, '.assoc.logistic')
+  paste0(prefix, '/mega.', phenotype, '.glm.logistic')
 }
 
 format_results <- function(file_name) {
   results <- fread(file_name)
-  results <- results %>% 
-    .[!(is.na(P))]
+  results <-plink2_to_plink_format(results) %>% 
+  .[!(is.na(P))]
 }
 
 # 1. Read in GWAS sumstats for each phenotype
@@ -20,7 +21,7 @@ for (phenotype in phenotypes) {
 }
 
 # 2. Create subsets of GWAS sumstats with P-values below threshold
-threshold <- 1e-5
+threshold <- 1e-4
 for (phenotype in phenotypes) {
 assign(paste0(phenotype, "_top"),
        get(phenotype)[P < threshold])
@@ -43,7 +44,14 @@ for (i in 1:(length(phenotypes) - 1)) {
                 get(paste0('OR_', pheno2)) > 1) |
                (get(paste0('OR_', pheno1)) < 1 & 
                   get(paste0('OR_', pheno2)) < 1)])
-    print(paste0(pheno1, "_", pheno2, " : ", 
-                 nrow(get(paste0(pheno1, "_", pheno2)))))
   }
 }
+
+for (i in 1:(length(phenotypes) - 1)) {
+  pheno1 <- phenotypes[i]
+  for (j in (i+1):length(phenotypes)) {
+    pheno2 <- phenotypes[j]
+    if (nrow(get(paste0(pheno1, "_", pheno2))[CHR != 19]) > 0) {
+      print(paste0(pheno1, "_", pheno2, " : ", 
+                   nrow(get(paste0(pheno1, "_", pheno2))[CHR != 19])))
+    }}}

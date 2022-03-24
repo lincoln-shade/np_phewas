@@ -64,6 +64,12 @@ setnames(pcs, 'rn', 'IID')
 covar <- merge(covar, pcs, 'IID')
 covar <- merge(covar, pheno[, .(FID, IID)], c('FID', 'IID'))
 
+for (i in 1:n_pcs) {
+  covar[, (paste0('pc', i)) := scale(get(paste0('pc', i)))]
+}
+
+covar[, age_death2 := NULL]
+
 fwrite(covar, 
        file = "data/mega/mega_np.covar", 
        quote = FALSE, 

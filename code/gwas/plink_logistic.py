@@ -11,7 +11,7 @@ def run_plink_regression(bfile, outfile, misspheno, pheno, covar,
     cmd = ["plink", "--bfile", args.bfile, "--out", args.outfile, 
     "--missing-phenotype", args.misspheno, "--pheno", args.pheno, 
     "--covar", args.covar, "--1", "--logistic", "hide-covar",
-    "--ci", "0.95", "--allow-no-sex"]
+    "--ci", "0.95", "--allow-no-sex", "--no-const-covar"]
     
     if args.chrom:
         cmd = cmd + ["--chr", args.chrom]

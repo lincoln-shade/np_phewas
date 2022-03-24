@@ -4,6 +4,8 @@
 ## generate list of independent top variants
 ##--------------------------------------------
 
+
+
 plink \
   --bfile $1 \
   --clump $2 \
