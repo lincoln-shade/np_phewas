@@ -57,7 +57,7 @@ no_rsid_new <- paste0(stri_replace_all_fixed(no_rsid, ":", "_"), "_b38")
 #------------------------
 
 fwrite(as.data.table(c(rsids_new, no_rsid_new)), 
-       file = paste0("data/tmp/snps_", phenotype, ".tmp"), 
+       file = paste0("tmp/snps_", phenotype, ".tmp"), 
        row.names = F, 
        col.names = F, 
        quote = F
@@ -68,7 +68,7 @@ rsid_key <- data.table("rsid"=c(rsids, no_rsid),
 )
 
 fwrite(rsid_key, 
-       file = paste0("data/tmp/rsid_key_", phenotype, ".tmp"), 
+       file = paste0("tmp/rsid_key_", phenotype, ".tmp"), 
        row.names = F, 
        col.names = T, 
        quote = F

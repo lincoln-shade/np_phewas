@@ -146,12 +146,51 @@ mega_np[arteriol %in% 1:3, arteriol123 := 1]
 mega_np[arteriol %in% 0:2, arteriol3 := 0]
 mega_np[arteriol %in% 3, arteriol3 := 1]
 
+# atherosclerosis in circle of willis
+mega_np[NACCAVAS %in% 0:3, atheroscler := NACCAVAS]
+mega_np[cvda_4gp2 %in% 0:3, atheroscler := cvda_4gp2]
+mega_np[ge_atherosclerosis_id %in% 0:3, atheroscler := ge_atherosclerosis_id]
+mega_np[NPAVAS %in% 0:3, atheroscler := NPAVAS]
 
+# lewy body pathology
+mega_np[NACCLEWY %in% 0:3, lewy_body := NACCLEWY] # NACC
+mega_np[NACCLEWY == 4, lewy_body := 0] # NACC
+mega_np[dlbdx %in% 0:3, lewy_body := dlbdx]
+mega_np[FID == "ADNI" & NPLBOD %in% 0:3, lewy_body := NPLBOD] # ADNI
+mega_np[FID == "ADNI" & NPLBOD == 4, lewy_body := 2] # ADNI
+mega_np[lbsubsnigra == 0 & lblocuscer == 0 & lbamygdala == 0 & lbfrontcor == 0,
+        lewy_body := 0]
+mega_np[(lbsubsnigra == 1 | lblocuscer == 1) & 
+          (lbamygdala == 0 & lbfrontcor == 0), lewy_body := 1]
+mega_np[(lbamygdala == 1 & lbfrontcor == 0),lewy_body := 2]
+mega_np[lbfrontcor == 1, lewy_body := 3]
+mega_np[lewy_body %in% 0, lewy_body123 := 0]
+mega_np[lewy_body %in% 1:3, lewy_body123 := 1]
+
+# cerebral amyloid angiopathy
+mega_np[NACCAMY %in% 0:3, caa_ord := NACCAMY]
+mega_np[micro_amyloidangiopathyoccipital %in% 1:4, 
+        caa_ord := micro_amyloidangiopathyoccipital - 1]
+mega_np[caa_4gp %in% 0:3, caa_ord := caa_4gp]
+mega_np[NPAMY %in% 0:3, caa_ord := NPAMY]
+
+# primary age-related tauopathy (PART)
+# defined in 10.1007/s00401-014-1349-0 as:
+# Braak stage 1-4 with CERAD neuritic plaques 0 (definite) or 1 (possible)
+mega_np[!(is.na(cerad) | is.na(braak)), part_def := 0] # definite
+mega_np[cerad == 0 & braak %in% 1:4, part_def := braak] # definite
+mega_np[part_def == 0, part_def1234 := 0]
+mega_np[part_def %in% 1:4, part_def1234 := 1]
+mega_np[!(is.na(cerad) | is.na(braak)), part_pos := 0] # possible
+mega_np[cerad %in% 0:1 & braak %in% 1:4, part_pos := braak] # possible
+mega_np[part_pos == 0, part_pos1234 := 0]
+mega_np[part_pos %in% 1:4, part_pos1234 := 1]
 
 
 plink_pheno_vars <- c(colnames(pheno), 'diffuse_abeta3', 'late23', 
                       'microinf_cortical123', 'microinf_deepgray123', 
-                      'arteriol123', 'arteriol3')
+                      'arteriol123', 'arteriol3', 'lewy_body123', 
+                      'part_def1234', 'part_pos1234')
 
 fwrite(mega_np[, ..plink_pheno_vars], 
        file = "data/mega/mega_np.pheno", 
@@ -159,6 +198,12 @@ fwrite(mega_np[, ..plink_pheno_vars],
        sep = ' ', 
        na = -1)
 
+fwrite(mega_np[, .(FID, IID, braak, cerad, diffuse_abeta, arteriol, 
+                   atheroscler, late, lewy_body, caa_ord, part_pos, part_def)],
+       file = "data/mega/mega_np_ord.pheno",
+       quote = FALSE,
+       sep = ' ',
+       na = -1)
 saveRDS(mega_np, file = "data/mega/mega_np.Rds")
 
 

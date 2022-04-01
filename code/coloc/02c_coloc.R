@@ -1,3 +1,5 @@
+#! /usr/bin/Rscript --vanilla
+
 #===============================================================
 # Single-variant colocalization analysis
 # arg1 should be the GTEx tissue (as it appears in files names)
@@ -6,21 +8,34 @@
 library(data.table)
 library(magrittr)
 library(coloc)
-# new
-# args[1] = p12
-# args[2] = phenotype_id
-# args[3] = tissue
-# argsp[4] = chr
+library(argparse)
 
-args <- commandArgs(trailingOnly = T)
-p12_args <- args[1]
-out_folder_args <- args[2]
-gwas_phenotype <- args[3]
-phenotype_id_args <- args[4]
-tissue_args <- args[5]
-chr_args <- args[6]
+parser <- ArgumentParser()
+parser$add_argument("-f", "--file", 
+                    help="GWAS and QTL merged sumstats file")
+parser$add_argument("-o", "--out", 
+                    help="output file path")
+parser$add_argument("--p12", help="prior probability of colocalization")
+parser$add_argument("-q", "--qtl_pheno", 
+                    help="QTL phenotype")
+parser$add_argument("-t", "--tissue", 
+                    help="QTL tissue")
+parser$add_argument("--chr", help="chromosome integer")
+args <- parser$parse_args()
 
-gwas_qtl <- fread(paste0("data/tmp/chr", chr_args, "_", phenotype_id_args, "_", tissue_args, "_gwas_qtl", gwas_phenotype, ".tmp"))
+# #########################################
+# args <- list(
+#   file = "tmp/chr20_ENSG00000132669.12_Thyroid_gwas_qtlarteriol23.tmp",
+#   out = "tmp/arteriol23_coloc_results.txt",
+#   p12 = "0.00001",
+#   qtl_pheno = "ENSG00000132669.12",
+#   tissue = "Thyroid",
+#   chr = "20"
+# )
+# #########################################
+
+p12 <- as.numeric(args$p12)
+gwas_qtl <- fread(args$file)
 gwas_qtl <- gwas_qtl[!duplicated(gwas_qtl$SNP)]
 
 lead.pos <- gwas_qtl[P_gwas == min(P_gwas), BP_hg38][1]
@@ -49,12 +64,24 @@ results <- coloc.abf(
     MAF = gwas_qtl$maf_qtl,
     snp = gwas_qtl$SNP
   ), 
-  p12 = as.numeric(p12_args)
+  p12 = p12
 )
 
-posteriors <- unname(results$summary)
 
-write(c(args[4:6], lead_snp, posteriors), 
-      file = paste0(out_folder_args, "_coloc_results.txt"), 
-      ncolumns = 10, 
+
+# write output
+posteriors <- formatC(unname(results$summary))
+top_snp <- gwas_qtl[SNP == lead_snp]
+cols <- c('Phenotype', 'Tissue', 'Chromosome', 'SNP', 'beta_GWAS', 'P_GWAS',
+          'beta_QTL', 'P_QTL', 'NSNP', 'PPH0', 'PPH1', 'PPH2', 'PPH3', 
+          'PPH4')
+if (!(file.exists(args$out))) {
+  write(cols,
+        file = args$out,
+        ncolumns = length(cols))
+}
+write(c(args$qtl_pheno, args$tissue, args$chr, lead_snp, top_snp$beta_gwas,
+        top_snp$P_gwas, top_snp$beta_qtl, top_snp$P_qtl, posteriors), 
+      file = args$out, 
+      ncolumns = length(cols), 
       append = TRUE)

@@ -23,7 +23,8 @@ args <- parser$parse_args()
 # PC-AiR
 #-----------
 # mostly taken from here: 
-# https://www.bioconductor.org/packages/release/bioc/vignettes/GENESIS/inst/doc/pcair.html
+# https://www.bioconductor.org/packages/release/bioc/vignettes/GENESIS/
+# inst/doc/pcair.html
 gdsfile <- args$gdsfile
 plink_path <- args$bfile
 snps <- fread(paste0(plink_path, ".bim"))

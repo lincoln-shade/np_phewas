@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript --vanilla
 
 ##=======================================
-## prepare b-asc data for coloc analysis
+## prepare gwas data for coloc analysis
 ##=======================================
 
 library(data.table)
@@ -13,36 +13,59 @@ library(GWASTools)
 library(qusage)
 library(SeqArray)
 library(SNPRelate)
+library(argparse)
 source("code/functions/strip_alleles.R")
+source("code/functions/plink2_to_plink_format.R")
 
 # commandline arguments
 # args 1 = phenotype file (phenotype needs to be binary (0/1) 
 # args 2 = minor allele frequency file .frq
-# args 3 = plink regression file .assoc.logistic
+# args 3 = plink2 regression file .glm.logistic
 # args 4 = chromosome integer
 # args 5 = gwas phenotype name
-args <- commandArgs(trailingOnly = T)
 
+parser <- ArgumentParser()
+parser$add_argument("-p", "--pheno", 
+                    help="path to text file with binary phenotypes coded 0/1")
+parser$add_argument("-f", "--freq", 
+                    help="path to PLINK2 .afrq file with allele frequencies")
+parser$add_argument("-r", "--results", 
+                    help="path to PLINK2 regression file .glm.logistic")
+parser$add_argument("--chr", help="chromosome integer")
+parser$add_argument("--phenotype", help="phenotype name")
+args <- parser$parse_args()
+
+# #########################################
+# args <- list(
+#   pheno = "data/mega/mega_np.pheno",
+#   freq = "tmp/chr20_maf_arteriol23.afreq",
+#   results = "output/gwas/mega/mega.arteriol23.glm.logistic",
+#   chr = "20",
+#   phenotype = "arteriol23"
+# )
+# #########################################
 ##------------------
 ## B-ASC GWAS data
 ##------------------
 
 # GWAS pheno file
-pheno <- fread(args[1], na.strings = '-1')
+pheno <- fread(args$pheno, na.strings = '-1')
 # proportion of participants who were cases
-gwas_phenotype <- args[5]
+gwas_phenotype <- args$phenotype
 n_cases <- pheno[get(gwas_phenotype) == 1, .N]
 n_controls <- pheno[get(gwas_phenotype) == 0, .N]
 proportion.cases <- n_cases / (n_cases + n_controls) 
 
 # MAF data
-gwas.maf <- fread(paste0(args[2]))
-gwas.maf <- gwas.maf[, .(SNP, MAF, A1)]
+gwas.maf <- fread(paste0(args$freq))
+gwas.maf <- gwas.maf[, .(ID, ALT, ALT_FREQS)]
+setnames(gwas.maf, c('ID', 'ALT', 'ALT_FREQS'), c('SNP', 'A1', 'MAF'))
 gwas.maf[, SNP := strip_alleles(SNP)]
 
 # GWAS summary stats
-gwas <- fread(args[3])
-gwas <- gwas[CHR == as.integer(args[4])]
+gwas <- fread(args$results) 
+gwas <- plink2_to_plink_format(gwas)
+gwas <- gwas[CHR == as.integer(args$chr)]
 gwas[, seq.name := paste0("chr", CHR)]
 gwas[, SNP := strip_alleles(SNP)]
 gwas[, beta := log(OR)]
@@ -106,6 +129,6 @@ setnames(gwas, c("MAF", "NMISS"), c("maf", "n"))
 gwas <- unique(gwas)
 
 
-save(gwas, file = paste0("data/tmp/chr", args[4], "_gwas_sumstats_", 
+save(gwas, file = paste0("tmp/chr", args$chr, "_gwas_sumstats_", 
                          gwas_phenotype, ".RData"))
 

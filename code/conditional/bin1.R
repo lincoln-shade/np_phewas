@@ -68,8 +68,10 @@ summary(m2)
 m3 <- dt[cerad ==0, clm(f4, data = .SD)]
 summary(m3)
 
-fm4_null <- formula(paste0(c('factor(braak56) ~ I(cerad >2)', covars), collapse = ' + '))
-fm4 <- formula(paste0(c('factor(braak56) ~ snp*I(cerad >2)', covars), collapse = ' + '))
+fm4_null <- formula(paste0(c('factor(braak56) ~ I(cerad >2)', covars), 
+                           collapse = ' + '))
+fm4 <- formula(paste0(c('factor(braak56) ~ snp*I(cerad >2)', covars),
+                      collapse = ' + '))
 m4_null <- dt[, clm(fm4_null, data = .SD)]
 m4 <- dt[, clm(fm4, data = .SD)]
 summary(m4)
