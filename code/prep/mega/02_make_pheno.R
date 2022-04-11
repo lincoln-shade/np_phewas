@@ -117,7 +117,7 @@ mega_np[late %in% 2:3, late23 := 1]
 
 # cortical microinfarcts
 mega_np[!is.na(NPOLD1), microinf_cortical := NPOLD1] # NACC and ADNI
-mega_np[microinf == 0, microinf_cortical := 0] # controls from microinf
+# mega_np[microinf == 0, microinf_cortical := 0] # controls from microinf
 mega_np[calc_haas_cerebralmicroinfarcts %in% 0:3, 
         microinf_cortical := calc_haas_cerebralmicroinfarcts] # ACT
 mega_np[calc_haas_cerebralmicroinfarcts > 3, 
@@ -127,7 +127,7 @@ mega_np[microinf_cortical > 0, microinf_cortical123 := 1]
 
 # subcortical gray matter microinfarcts
 mega_np[!is.na(NPOLD3), microinf_deepgray := NPOLD3] # NACC and ADNI
-mega_np[microinf == 0, microinf_deepgray := 0] # controls from microinf
+# mega_np[microinf == 0, microinf_deepgray := 0] # controls from microinf
 mega_np[calc_haas_deepgraymicroinfarcts %in% 0:3, 
         microinf_deepgray := calc_haas_deepgraymicroinfarcts] # ACT
 mega_np[calc_haas_deepgraymicroinfarcts > 3, 
@@ -177,20 +177,18 @@ mega_np[NPAMY %in% 0:3, caa_ord := NPAMY]
 # primary age-related tauopathy (PART)
 # defined in 10.1007/s00401-014-1349-0 as:
 # Braak stage 1-4 with CERAD neuritic plaques 0 (definite) or 1 (possible)
-mega_np[!(is.na(cerad) | is.na(braak)), part_def := 0] # definite
-mega_np[cerad == 0 & braak %in% 1:4, part_def := braak] # definite
-mega_np[part_def == 0, part_def1234 := 0]
-mega_np[part_def %in% 1:4, part_def1234 := 1]
-mega_np[!(is.na(cerad) | is.na(braak)), part_pos := 0] # possible
-mega_np[cerad %in% 0:1 & braak %in% 1:4, part_pos := braak] # possible
-mega_np[part_pos == 0, part_pos1234 := 0]
-mega_np[part_pos %in% 1:4, part_pos1234 := 1]
+mega_np[cerad ==0 & braak %in% 0:4, part_def := braak] # definite
+mega_np[part_def %in% 0:2, part_def34 := 0]
+mega_np[part_def %in% 3:4, part_def34 := 1]
+mega_np[cerad %in% 0:1 & braak %in% 0:4, part_pos := braak] # possible
+mega_np[part_pos %in% 0:2, part_pos34 := 0]
+mega_np[part_pos %in% 3:4, part_pos34 := 1]
 
 
 plink_pheno_vars <- c(colnames(pheno), 'diffuse_abeta3', 'late23', 
                       'microinf_cortical123', 'microinf_deepgray123', 
                       'arteriol123', 'arteriol3', 'lewy_body123', 
-                      'part_def1234', 'part_pos1234')
+                      'part_def34', 'part_pos34')
 
 fwrite(mega_np[, ..plink_pheno_vars], 
        file = "data/mega/mega_np.pheno", 

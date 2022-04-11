@@ -6,7 +6,7 @@ adc <- fread("data/adc/adc_np.covar")
 ros <- fread("data/rosmap/rosmap_np.covar")
 act <- fread("data/act/act_np.covar")
 adni <- fread("data/adni/adni_np.covar")
-pheno <- fread("data/mega/mega_np.pheno")
+pheno <- fread("data/mega/mega_np_ord.pheno", na.strings = '-1')
 load("data/mega/mypcair.Rdata")
 
 ros[, rosmap := 1]
@@ -74,4 +74,12 @@ fwrite(covar,
        file = "data/mega/mega_np.covar", 
        quote = FALSE, 
        sep = ' ', 
-       na = -1)
+       na = NA)
+
+covar <- merge(covar, pheno[, .(FID, IID, cerad, diffuse_abeta)])
+
+fwrite(covar, 
+       file = "data/mega/mega_np_part_pos.covar", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = NA)

@@ -27,11 +27,11 @@ args <- parser$parse_args()
 ###############################################################################
 # test args
 args <- list(covar = "data/mega/mega_np.covar",
-             geno = "tmp/lewy_body123_p0.01.raw",
-             out = "tmp/lewy_body_ord_results.txt",
+             geno = "tmp/part_def34_p0.01.raw",
+             out = "output/gwas/mega/part_def_ord_results.txt",
              pheno = "data/mega/mega_np_ord.pheno",
-             phenotype = "lewy_body",
-             remove = "data/mega/related_rm/lewy_body123.remove")
+             phenotype = "part_def",
+             remove = "data/mega/related_rm/part_def34.remove")
 ###############################################################################
 
 raw <-fread(args$geno, header = T)
@@ -147,6 +147,7 @@ run_clm <- function(i) {
 
 for (i in (skip_cols + 1L):n_cols) {
   run_clm(i)
+  if (i %% 100 == 0) {print(i)}
 }
   
   
