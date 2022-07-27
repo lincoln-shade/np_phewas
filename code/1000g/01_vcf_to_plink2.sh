@@ -6,7 +6,7 @@
 #=========================================================================
 
 # create file to list fileset prefixes to merge
-echo > ./tmp/1000g_plink_fileset_prefixes.tmp
+rm ./tmp/1000g_plink_fileset_prefixes.tmp
 
 # create plink fileset for each chromosome.
 # using --snps-only because some indels have multiple versions
@@ -18,34 +18,32 @@ for chr in {1..22}
   do
   vcf=/data_global/1000g/hg38/ALL/ALL.chr"$chr"_GRCh38.genotypes.20170504.vcf.gz
 
-  # write duplicate variant ids to file
-  zcat $vcf | grep -v '^#' | cut -f 3 | sort | \
-    uniq -d > tmp/1000g_chr"$chr"_dups.tmp
+  # # write duplicate variant ids to file
+  # zcat $vcf | grep -v '^#' | cut -f 3 | sort | \
+  #   uniq -d > tmp/1000g_chr"$chr"_dups.tmp
 
-  plink \
-    --vcf-filter \
+  plink2 \
     --vcf $vcf \
-    --make-bed \
-    --geno \
+    --geno 0.01 \
+    --make-pgen \
+    --set-all-var-ids @:#_b38:\$r:\$a \
+    --new-id-max-allele-len 51 \
+    --vcf-half-call m \
     --maf 0.01 \
-    --biallelic-only strict \
-    --snps-only just-acgt \
-    --set-missing-var-ids @:#[b37]:\$1:\$2 \
-    --vcf-half-call 'missing' \
-    --exclude tmp/1000g_chr"$chr"_dups.tmp \
     --out tmp/1000g_chr"$chr".tmp
 
     echo tmp/1000g_chr"$chr".tmp >> tmp/1000g_plink_fileset_prefixes.tmp
   done
 
-plink \
-  --merge-list tmp/1000g_plink_fileset_prefixes.tmp \
-  --make-bed \
-  --out data/1000g/1000g
-
-rm tmp/1000g*.tmp*
-
 plink2 \
-  --bfile data/1000g/1000g \
+  --pmerge-list tmp/1000g_plink_fileset_prefixes.tmp \
   --make-pgen \
   --out data/1000g/1000g
+
+
+# rm tmp/1000g*.tmp*
+
+# plink2 \
+#   --bfile data/1000g/1000g \
+#   --make-pgen \
+#   --out data/1000g/1000g

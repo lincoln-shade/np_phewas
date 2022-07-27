@@ -1,0 +1,62 @@
+---
+output: word_document
+bibliography: doc/references.bib
+csl: doc/nature.csl
+link-citations: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Genome-wide association studies (GWAS) have to date identified over 70 genetic risk loci for Alzheimer's Disease (AD).[@jansen2019; @wightman2021; @bellenguez2022] Most AD GWAS have focused on clinical AD; however, clinical AD does not always correspond with AD neuropathology and vice-versa.[@nelson2012] We hypothesized that investigating the genetic architecture of multiple neuropathological endophenotypes (NPE) would:
+
+1.  identify novel genetic risk loci for individual NPE
+2.  identify common sources of genetic risk (pleiotropy) between NPE
+3.  provide evidence that the effects of clinical AD genetic risk loci may be mediated by specific NPE.
+
+# Methods
+
+We used genotype and NPE data from four aged autopsy cohorts: National Alzheimer's Coordinating Center (NACC), the Religious Orders Study and the Memory and Aging Project (ROSMAP), Adult Changes in Thought (ACT), and the AD Neuroimaging Initiative (ADNI).
+
+## Quality Control
+
+Quality control and inclusion/exclusion criteria closely follow that used in our previous brain arteriolosclerosis GWAS,[@shade2022] with the exception that all cohorts have undergone imputation using the Trans-'Omics for Precision Medicine (TOPMed) Imputation Server and the TOPMed reference panel.[@taliun2021]
+
+1.  Retrieve participants labeled as non-Hispanic white or similar (European, etc.) if available.
+2.  Perform imputation on TOPMed Imputation Server (ROSMAP and ADNI had already been imputed using same reference panel by collaborators, so this step was skipped for those cohorts).
+3.  Covert VCF files to PLINK file set, keeping variants will minor allele frequencies (MAF) of 0.1% or greater.
+4.  Merge sub-cohorts of same study (e.g. NACC cohorts 1-12 and ACT 1-3).
+5.  Remove duplicate participants in each study.
+6.  Remove participants without autopsy data available.
+7.  Iteratively remove variants and participants with excess missingness until no variant is missing in more than 5% of participants and no participant is missing more than 5% of variants.
+8.  Remove participants with unusually high/low heterozygosity (+/- 3 SD cutoff).
+9.  Merge with 1000 Genomes Phase 3 cohorts[@the1000genomesprojectconsortium2012] and remove participants without primarily European ancestry as determined by principal component analysis.
+10. Remove participants with rare neurological diseases that substantially raise the likelihood that present NPE could be due to unusual pathological processes (NACC only, as the other cohorts did not have this information available).
+11. Remove duplicate participants between studies, preferentially keeping the observation in the larger cohort (*i.e.* NACC \> ROSMAP \> ACT \> ADNI in preference).
+12. Merge cohorts.
+13. Harmonize NPE variables to analyze.
+14. Create list of related ($\ge$ 2nd-degree relatives) individuals using KING[@manichaikul2010] to remove for each NPE variable, randomly keeping one participant in each related cluster.
+15. Create genetic principal components using the PC-AiR method in the GENESIS package in R 4.1.[@conomos2015]
+
+We note that there are substantial differences in the way that NPE are collected in different cohorts,(cite) and our strategy for harmonizing was informed by practical considerations for maximizing available samples sizes and minimizing computational load for analysis. Thus, some ordinal variables were collapsed to binary variables, or synthetic NPE may have been created using categorical variables from one cohort and continuous variables from another. All code used for harmonization will be made available upon publication, and a brief overview of the harmonization strategy for each NPE will be included in the Supplemental Materials.
+
+## Statistical Analyses
+
+All the analyses discussed below were done on the data set with the combined cohorts.
+
+### Single-variant GWAS
+
+Single-variant logistic regression analyses were performed in PLINK 2.0.[@chang2015; @purcell] Covariates included age at death, sex, cohort, and the first 10 genetic principle components. Continuous covariates were standardized to a mean of 0 and a variance of 1. An additive mode of inheritance was assumed in all analyses. Variants achieving a p-value of $< 5\times 10^{-8}$ were considered "genome-wide" significant. To identify independent genetic risk loci, variants were clumped using PLINK 1.9[@chang] using a linkage-disequilibrium threshold of $r^2 \le 0.05$.
+
+Ordinal variables were analyzed using proportional odds logistic mixed-effects models using the POLMM R package.[@bi2021] Dense kinship matrices were used to account for relatedness.
+
+### Conditional and mediation analyses
+
+For genetic loci associated with multiple NPE, we considered mediation hypotheses to test whether the association of the lead variant with one NPE was mediated by another NPE. Regression analyses were run in R using the `glm` or `polr` functions and mediation analyses were performed using the mediation[@tingley2014] R package with standard errors estimated using boot strap re-sampling with 1000 simulations.
+
+### Colocalization analyses
+
+All variants in each logistic GWAS with p-values $< 0.01$ were checked for significant quantitative trait locus (QTL) activity in the Genotype-Tissue Expression Project (GTEx) v8 European ancestry data set in 48 tissues. Colocalization analysis using the coloc R package (cite) was then performed on GWAS loci with significant QTLs. A prior probability of colocalization of $1\times 10^{-5}$ was used, and a posterior probability of colocalization (PPH4) \> 80% was used as a threshold for evidence of colocalization.

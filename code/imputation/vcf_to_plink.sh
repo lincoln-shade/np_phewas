@@ -1,16 +1,25 @@
 #!/bin/bash
 
-# seq 1 22 | xargs -n 1 -P 22 -I % plink --vcf /data_global/ADC_imputed/chr%_all_adcs.dose.vcf.gz --make-bed --const-fid --out data/tmp/adc_chr%
+# convert imputed VCF files to PLINK 2 binary filesets
+seq 1 22 | \
+  xargs -n 1 -P 22 -I % \
+  ./code/imputation/vcf_to_plink2.py \
+    --vcf /data_global/ADC_imputed/chr%_all_adcs.dose.vcf.gz \
+    --out tmp/adc_chr%
 
-# seq 1 22 | xargs -n 1 -P 22 -I % plink --bfile data/tmp/adc_chr% --maf 0.001 --geno 0.2 --make-bed --out data/tmp/adc_chr%_qc
+# merge PLINK 2 chromosomal binary filesets
+list_file=tmp/adc_prefix_list.tmp
+for i in $(seq 1 22)
+  do
+  echo tmp/adc_chr"$i" >> $list_file
+  done
 
-# list_file=data/tmp/plink_prefix_list.tmp
-# echo > $list_file
-# for i in $(seq 1 22)
-#   do
-#   echo data/tmp/adc_chr"$i"_qc >> $list_file
-#   done
-# 
-# plink --merge-list $list_file --make-bed --out data/plink/adc
+plink2 --pmerge-list $list_file --out tmp/adc
 
-plink --bfile data/plink/adc --update-name raw_data/chrall.rs.linker --make-bed --out data/plink/adc_rsid
+# rename variants with rsIDs (doesn't work for indels afaict)
+linker=tmp/rsid_linker.tmp
+Rscript --vanilla ./code/imputation/import_rsids_from_bed.R \
+  --pvar tmp/adc.pvar \
+  --out "$linker"
+
+plink2 --pfile tmp/adc --update-name "$linker" --make-pgen --out tmp/adc_rsid

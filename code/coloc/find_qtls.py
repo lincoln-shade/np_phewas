@@ -20,9 +20,11 @@ if len(snps) == 0:
 
 
 snp_set = set(snps)
-eqtl_dir = "/data_global/GTEx/GTEx_Analysis_v8_QTLs/GTEx_Analysis_v8_eQTL_Eur/eqtls/"
-sqtl_dir = ("/data_global/GTEx/GTEx_Analysis_v8_QTLs/GTEx_Analysis_v8_sQTL_Eur/" +
-            "GTEx_Analysis_v8_sQTL_EUR/"
+eqtl_dir = ("/data_global/GTEx/GTEx_Analysis_v8_QTLs/"
+              "GTEx_Analysis_v8_eQTL_Eur/eqtls/"
+)
+sqtl_dir = ("/data_global/GTEx/GTEx_Analysis_v8_QTLs/"
+            "GTEx_Analysis_v8_sQTL_Eur/GTEx_Analysis_v8_sQTL_EUR/"
 )
 eqtl_dir_files = os.listdir(eqtl_dir)
 sqtl_dir_files = os.listdir(sqtl_dir)

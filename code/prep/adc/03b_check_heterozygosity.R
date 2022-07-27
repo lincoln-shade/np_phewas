@@ -9,7 +9,7 @@ library(data.table)
 het <- fread("tmp/adc_qc1_het.tmp.het")
 
 # (total number genotypes - number homozygous) / total number genotypes
-het[, het.rate := (`N(NM)` - `O(HOM)`) / `N(NM)`]
+het[, het.rate := (`OBS_CT` - `O(HOM)`) / `OBS_CT`]
 
 # 3SD threshold for failure
 het.fail <- het[het.rate < mean(het.rate) - 3 * sd(het.rate) |

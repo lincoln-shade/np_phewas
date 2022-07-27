@@ -25,17 +25,17 @@ parser$add_argument("--phenotype", help="phenotype name")
 args <- parser$parse_args()
 
 ###############################################################################
-# test args
-args <- list(covar = "data/mega/mega_np.covar",
-             geno = "tmp/part_def34_p0.01.raw",
-             out = "output/gwas/mega/part_def_ord_results.txt",
-             pheno = "data/mega/mega_np_ord.pheno",
-             phenotype = "part_def",
-             remove = "data/mega/related_rm/part_def34.remove")
+# # test args
+# args <- list(covar = "data/mega/mega_np_apoe.covar",
+#              geno = "tmp/caa_apoe_p0.01.raw",
+#              out = "tmp/caa_ord_apoe_ord_results.txt",
+#              pheno = "data/mega/mega_np_ord.pheno",
+#              phenotype = "caa_ord",
+#              remove = "data/mega/related_rm/caa_ord.remove")
 ###############################################################################
 
 raw <-fread(args$geno, header = T)
-covar_data <- fread(args$covar)
+covar_data <- fread(args$covar, stringsAsFactors = TRUE)
 phenotype_data <- fread(args$pheno, na.strings = "-1")
 related_rm <- args$remove
 phenotype <- args$phenotype

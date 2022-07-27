@@ -4,7 +4,7 @@ library(magrittr)
 
 na_strings <- c("-9", "-4", "9999", "999", "888")
 # Universal Data Set + NP
-uds <- fread("/data_global/nacc/investigator_nacc56.csv", 
+uds <- fread("/data_global/nacc/investigator_nacc57.csv", 
              na.strings = na_strings)
 # NP data not longitudinal, so just keep obs from last visit
 uds <- uds[NACCVNUM == NACCAVST]
@@ -13,6 +13,13 @@ uds <- uds[NACCVNUM == NACCAVST]
 mds <- fread("/data_global/nacc/fardo09062019.csv", 
              na.strings = na_strings)
 
+# list of neuropath variables
+np_vars_nacc <- fread("data/nacc_np_vars_names_nacc.txt", header = FALSE)$V1
+np_vars_remove <- fread("data/nacc_uds_var_names_np.txt", header = FALSE)$V1
+
+# PLINK .fam file
+adgc <- fread("data/adc/adc.psam", check.names = TRUE)
+setnames(adgc, "X.FID", "FID")
 #------------------------------------------------------
 # subset participants with NP data and NP variables
 #------------------------------------------------------
@@ -25,8 +32,7 @@ mds[!(is.na(NPFORMVER)), np := 1]
 table(mds$np, useNA = "a")
 
 np_vars <- colnames(uds)[grep("NP", colnames(uds))]
-np_vars_nacc <- fread("data/nacc_np_vars_names_nacc.txt", header = FALSE)$V1
-np_vars_remove <- fread("data/nacc_uds_var_names_np.txt", header = FALSE)$V1
+
 np_vars <- np_vars[!(np_vars) %in% np_vars_remove]
 np_vars <- c(np_vars_nacc, np_vars)
 uds_np <- uds[np == 1, ..np_vars]
@@ -53,11 +59,12 @@ np <- np[!((NACCID %in% np_dup_id$NACCID) & uds == 0)]
 # add variable indicating genotype data available in ADGC_HRC
 #-------------------------------------------------------------
 
-adgc <- fread("tmp/adc_no_naccid_dups.fam", header = FALSE)
-np_adgc <-  merge(np, adgc[, .(V1, V2)], by.x = "NACCID", by.y = "V2")
+
+np_adgc <- merge(np, adgc, by.x = "NACCID", by.y = "IID")
 np_adgc <- np_adgc[!(NACCID %in% NACCID[duplicated(NACCID)])]
-setcolorder(np_adgc, c("V1", "NACCID"))
-setnames(np_adgc, c("V1", "NACCID"), c("FID", "IID"))
+setcolorder(np_adgc, c("FID", "NACCID"))
+setnames(np_adgc, c("NACCID"), c("IID"))
+
 saveRDS(np_adgc, file = "data/adc/np.Rds")
 fwrite(np_adgc, file = "data/adc/np.csv", quote = FALSE)
 

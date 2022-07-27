@@ -1,10 +1,11 @@
 library(data.table)
 library(magrittr)
 source('code/functions/plink2_to_plink_format.R')
+`%!in%` <- function(x, v) {!(x %in% v)}
 
-pheno <- fread("data/mega/mega_np.pheno")
+pheno <- fread("data/mega/mega_np.pheno", na.strings = '-1')
 phenotypes <- colnames(pheno)[3:length(colnames(pheno))]
-
+phenotypes <- phenotypes[phenotypes %!in% c("lewy")]
 file_path <- function(phenotype, prefix="output/gwas/mega") {
   paste0(prefix, '/mega.', phenotype, '.glm.logistic')
 }
@@ -21,10 +22,10 @@ for (phenotype in phenotypes) {
 }
 
 # 2. Create subsets of GWAS sumstats with P-values below threshold
-threshold <- 1e-4
+threshold <- 1e-5
 for (phenotype in phenotypes) {
 assign(paste0(phenotype, "_top"),
-       get(phenotype)[P < threshold])
+       get(phenotype)[CHR != 19][P < threshold])
 }
 
 # 3. Merge subset sumstats for phenotype pairs where OR are in same direction

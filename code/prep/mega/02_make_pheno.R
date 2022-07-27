@@ -109,8 +109,8 @@ mega_np[diffuse_abeta %in% 3, diffuse_abeta3 := 1]
 mega_np[NPTDPA == 0 | NPTDPB == 0 | NPTDPC == 0 | NPTDPD == 0 | NPTDPE == 0, 
         late := 0] # NACC and ADNI
 mega_np[NPTDPB == 1, late := 1] # NACC and ADNI
-mega_np[NPTDPC == 1, late := 2] # NACC and ADNI
-mega_np[NPTDPD == 1 | NPTDPE == 1, late := 3] # NACC and ADNI
+mega_np[NPTDPC == 1 | NPTDPD == 1, late := 2] # NACC and ADNI
+mega_np[NPTDPE == 1, late := 3] # NACC and ADNI
 mega_np[!is.na(tdp_st4), late := tdp_st4] # ROSMAP
 mega_np[late %in% 0:1, late23 := 0]
 mega_np[late %in% 2:3, late23 := 1]
@@ -135,16 +135,12 @@ mega_np[calc_haas_deepgraymicroinfarcts > 3,
 mega_np[microinf_deepgray == 0, microinf_deepgray123 := 0]
 mega_np[microinf_deepgray > 0, microinf_deepgray123 := 1]
 
-# arteriolosclerosis binary variables at 0 | 123 and 012 | 3 cutoffs
+# arteriolosclerosis binary variable
 mega_np[!is.na(NACCARTE), arteriol := NACCARTE] # NACC
 mega_np[!is.na(arteriol_scler), arteriol := arteriol_scler] # ROSMAP
 mega_np[!is.na(NPARTER), arteriol := NPARTER] # ADNI
 mega_np[!is.na(micro_arteriolosclerosis_id), 
         arteriol := micro_arteriolosclerosis_id - 1] # ACT
-mega_np[arteriol %in% 0, arteriol123 := 0]
-mega_np[arteriol %in% 1:3, arteriol123 := 1]
-mega_np[arteriol %in% 0:2, arteriol3 := 0]
-mega_np[arteriol %in% 3, arteriol3 := 1]
 
 # atherosclerosis in circle of willis
 mega_np[NACCAVAS %in% 0:3, atheroscler := NACCAVAS]
@@ -180,15 +176,24 @@ mega_np[NPAMY %in% 0:3, caa_ord := NPAMY]
 mega_np[cerad ==0 & braak %in% 0:4, part_def := braak] # definite
 mega_np[part_def %in% 0:2, part_def34 := 0]
 mega_np[part_def %in% 3:4, part_def34 := 1]
-mega_np[cerad %in% 0:1 & braak %in% 0:4, part_pos := braak] # possible
-mega_np[part_pos %in% 0:2, part_pos34 := 0]
-mega_np[part_pos %in% 3:4, part_pos34 := 1]
 
+# vascular contributions to cognitive impairment and dementia
+# described here:  https://doi.org/10.1002/alz.12639
+# 0: no arteriolosclerosis, atherosclerosis, or infarcts
+# 1: athero or arteriolo, no infarcts
+# athero or ateriolo + microinfarct
+# athero or arteriolo + gross infarct
+mega_np[!is.na(arteriol) & !is.na(atheroscler) & !is.na(microinf) &
+          !is.na(grossinf), vcid := 0]
+mega_np[!is.na(vcid) & (arteriol > 0 | atheroscler > 0), vcid := 1]
+mega_np[!is.na(vcid) & (arteriol > 1 | atheroscler > 1), vcid := 2]
+mega_np[!is.na(vcid) & (arteriol > 2 | atheroscler > 2), vcid := 3]
+mega_np[!is.na(vcid) & microinf == 1, vcid := 4]
+mega_np[!is.na(vcid) & grossinf == 1, vcid := 5]
 
 plink_pheno_vars <- c(colnames(pheno), 'diffuse_abeta3', 'late23', 
-                      'microinf_cortical123', 'microinf_deepgray123', 
-                      'arteriol123', 'arteriol3', 'lewy_body123', 
-                      'part_def34', 'part_pos34')
+                      'lewy_body123', 'part_def34')
+plink_pheno_vars <- plink_pheno_vars[plink_pheno_vars != "lewy"]
 
 fwrite(mega_np[, ..plink_pheno_vars], 
        file = "data/mega/mega_np.pheno", 
@@ -197,7 +202,8 @@ fwrite(mega_np[, ..plink_pheno_vars],
        na = -1)
 
 fwrite(mega_np[, .(FID, IID, braak, cerad, diffuse_abeta, arteriol, 
-                   atheroscler, late, lewy_body, caa_ord, part_pos, part_def)],
+                   atheroscler, late, lewy_body, caa_ord, part_def,
+                   vcid)],
        file = "data/mega/mega_np_ord.pheno",
        quote = FALSE,
        sep = ' ',

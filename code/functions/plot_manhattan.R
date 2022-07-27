@@ -2,19 +2,24 @@
 # create manhattan plot
 #=============================
 
-plot_manhattan <- function(results, signif_only=TRUE, annotate=FALSE, font_size=12) {
+plot_manhattan <- function(results, 
+                           signif_only=TRUE, 
+                           annotate=FALSE, 
+                           font_size=12) {
   require(data.table)
   require(magrittr)
   require(ggplot2)
   require(ggrepel)
   
   results <- as.data.table(results)
+  # setnames(results, c('#CHROM', 'POS', 'ID'), c('CHR', 'BP', 'SNP'))
+  setorder(results, CHR, BP)
   results[, BP := as.numeric(BP)]
   if (signif_only) {
     results <- results[P < 0.05]
   }
   
-  if (length(annotate) > 0) {
+  if (is.character(annotate)) {
     results[SNP %in% annotate, annotate := TRUE]
   }
   
@@ -39,6 +44,7 @@ plot_manhattan <- function(results, signif_only=TRUE, annotate=FALSE, font_size=
     scale_x_continuous(label = x_axis$CHR, breaks= x_axis$V1) +
     # remove space between y-axis and baseline
     scale_y_continuous(expand = c(0.05, 0)) +
+    ylim(2, 13) +
     
     xlab("Chromosome") +
     ylab("-log(P)") +

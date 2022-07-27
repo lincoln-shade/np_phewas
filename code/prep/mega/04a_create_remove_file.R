@@ -9,6 +9,7 @@ dot_genome <- cl_args[1] # .genome file from PLINK
 np_path <- cl_args[2] # file with participants
 dir_path <- cl_args[3] # directory for output file
 phenotype <- cl_args[4] # phenotype
+covar <- cl_args[5] # covariate file with subset of participants
 
 if (!dir.exists(dir_path)) {
   dir.create(dir_path, recursive = TRUE)
@@ -24,12 +25,15 @@ related <- related[, .(IID1, IID2, pair, PI_HAT)]
 related.long <- melt.data.table(related, measure.vars = c("IID1", "IID2"), value.name = "IID")
 
 np <- fread(np_path, na.strings = '-1')
+if (!is.null(covar)) {covar <- fread(covar)}
+np <- np[IID %in% covar$IID]
 setnames(np, paste(phenotype), "phenotype")
 covar <- fread("data/mega/mega_np.covar")
 np <- np[IID %in% covar$IID]
 related_pheno <- merge(np[, .(FID, IID, phenotype)], related.long, by = "IID")
 
-related_pheno <- related_pheno[!(is.na(phenotype))][pair %in% pair[duplicated(pair)]]
+related_pheno <- related_pheno[!(is.na(phenotype))
+                               ][pair %in% pair[duplicated(pair)]]
 
 #-------------------------------------------------------
 # add random number seed and create list of ids to remove

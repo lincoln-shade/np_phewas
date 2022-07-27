@@ -28,4 +28,5 @@ for (i in seq_len(n_lists)) {
 }
 
 list_index <- data.table(1:n_lists)
-fwrite(list_index, file = "data/tmp/snp_list_index.tmp", row.names = F, col.names = F, quote = F, sep = " ")
+fwrite(list_index, file = "tmp/snp_list_index.tmp", 
+       row.names = F, col.names = F, quote = F, sep = " ")

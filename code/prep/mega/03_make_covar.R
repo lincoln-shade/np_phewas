@@ -76,6 +76,14 @@ fwrite(covar,
        sep = ' ', 
        na = NA)
 
+# subset age 80+ at death
+# remove ADNI since only 26 ADNI 80+, could affect models
+fwrite(covar[age_death >= 80 & FID != "ADNI"], 
+       file = "data/mega/mega_np_age80.covar", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = NA)
+
 covar <- merge(covar, pheno[, .(FID, IID, cerad, diffuse_abeta)])
 
 fwrite(covar, 
@@ -83,3 +91,5 @@ fwrite(covar,
        quote = FALSE, 
        sep = ' ', 
        na = NA)
+
+
