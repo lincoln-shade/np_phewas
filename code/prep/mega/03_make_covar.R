@@ -69,6 +69,7 @@ for (i in 1:n_pcs) {
 }
 
 covar[, age_death2 := NULL]
+covar <- covar[complete.cases(covar)]
 
 fwrite(covar, 
        file = "data/mega/mega_np.covar", 

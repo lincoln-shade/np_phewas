@@ -6,7 +6,12 @@ link-citations: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(data.table)
+library(flextable)
 ```
 
 # Introduction
@@ -19,44 +24,81 @@ Genome-wide association studies (GWAS) have to date identified over 70 genetic r
 
 # Methods
 
-We used genotype and NPE data from four aged autopsy cohorts: National Alzheimer's Coordinating Center (NACC), the Religious Orders Study and the Memory and Aging Project (ROSMAP), Adult Changes in Thought (ACT), and the AD Neuroimaging Initiative (ADNI).
+## Participants
 
-## Quality Control
+```{r}
+np <- readRDS("data/mega/mega_np.Rds")
+nadrc <- np[, length(table(NACCADC))]
+```
 
-Quality control and inclusion/exclusion criteria closely follow that used in our previous brain arteriolosclerosis GWAS,[@shade2022] with the exception that all cohorts have undergone imputation using the Trans-'Omics for Precision Medicine (TOPMed) Imputation Server and the TOPMed reference panel.[@taliun2021]
+We used genotype and NPE data from four aged autopsy cohorts: National Alzheimer's Coordinating Center (NACC), the Religious Orders Study and the Memory and Aging Project (ROSMAP), Adult Changes in Thought (ACT), and the AD Neuroimaging Initiative (ADNI). All study participants were de-identified and deceased, and archival samples were exclusively used. Therefore, our study does not fall under the definition of "Human Subjects Research," according to the University of Kentucky Institutional Review Board because of NIH Exemption #4 -- involving the collection/study of data or specimens if publicly availablr, or/or recorded such that subjects cannot be identified.
 
-1.  Retrieve participants labeled as non-Hispanic white or similar (European, etc.) if available.
-2.  Perform imputation on TOPMed Imputation Server (ROSMAP and ADNI had already been imputed using same reference panel by collaborators, so this step was skipped for those cohorts).
-3.  Covert VCF files to PLINK file set, keeping variants will minor allele frequencies (MAF) of 0.1% or greater.
-4.  Merge sub-cohorts of same study (e.g. NACC cohorts 1-12 and ACT 1-3).
-5.  Remove duplicate participants in each study.
-6.  Remove participants without autopsy data available.
-7.  Iteratively remove variants and participants with excess missingness until no variant is missing in more than 5% of participants and no participant is missing more than 5% of variants.
-8.  Remove participants with unusually high/low heterozygosity (+/- 3 SD cutoff).
-9.  Merge with 1000 Genomes Phase 3 cohorts[@the1000genomesprojectconsortium2012] and remove participants without primarily European ancestry as determined by principal component analysis.
-10. Remove participants with rare neurological diseases that substantially raise the likelihood that present NPE could be due to unusual pathological processes (NACC only, as the other cohorts did not have this information available).
-11. Remove duplicate participants between studies, preferentially keeping the observation in the larger cohort (*i.e.* NACC \> ROSMAP \> ACT \> ADNI in preference).
-12. Merge cohorts.
-13. Harmonize NPE variables to analyze.
-14. Create list of related ($\ge$ 2nd-degree relatives) individuals using KING[@manichaikul2010] to remove for each NPE variable, randomly keeping one participant in each related cluster.
-15. Create genetic principal components using the PC-AiR method in the GENESIS package in R 4.1.[@conomos2015]
+This analysis used NACC data from `r nadrc` National Institute of Aging-funded Alzheimer's Disease Research Centers (ADRC). Individual ADRC use different recruitment methods and perform autopsies on-site, but participant data at each ADRC are collected using a standard form (<https://files.alz.washington.edu/documentation/np11-form.pdf>) and submitted to NACC where they are aggregated. The NACC Neuropathology (NP) data set based on the first version of this form was originally implemented in 2001[@besser2018], and this analysis uses data from then through the December 2021 freeze. Participants were excluded if they did not have autopsy data available or if they were noted in the NP data set to have at least one of 19 conditions that could potentially invalidate results. These conditions include brain tumors, severe head trauma, and fronto-temporal dementia (see **Supplementary Materials** for full list of variables used).
 
-We note that there are substantial differences in the way that NPE are collected in different cohorts,(cite) and our strategy for harmonizing was informed by practical considerations for maximizing available samples sizes and minimizing computational load for analysis. Thus, some ordinal variables were collapsed to binary variables, or synthetic NPE may have been created using categorical variables from one cohort and continuous variables from another. All code used for harmonization will be made available upon publication, and a brief overview of the harmonization strategy for each NPE will be included in the Supplemental Materials.
+ROSMAP has been previously described and consists of harmonized data from two longitudinal cohorts: The Religious Orders Study (ROS) and the Memory and Aging Project (MAP).[@bennett2018] ROS began in 1994 and has recruited over 1,100 Catholic priests, nuns, and brothers across the United States. MAP started in 1997 and enrolls community members in northeastern Illinois. The ROSMAP NP data used in this study was received from Rush University researchers in January 2020.
+
+The ACT study began in 1994 and recruited residents in the greater Seattle area aged 65 years and older without dementia at time of enrollment.21 The goal of the study has expanded to include three cohorts and continuous enrollment using the same enrollment criteria and has a current total of 4,960 participants across all three cohorts. The ACT NP data used in this study were obtained from Kaiser Permanente in May 2020.
+
+The ADNI (<https://adni.loni.usc.edu>) was launched in 2003 as a public-private research partnership, led by Principal Investigator Michael W. Weiner, MD. The primary goal of ADNI has been to test whether serial magnetic resonance imaging (MRI), positron emission tomography (PET), other biological markers, and clinical and neuropsychological assessment can be combined to measure the progression of mild cognitive impairment (MCI) and early AD. A subset of ADNI participants undergo autopsy and receive neuropathological phenotyping. The ADNI NP data used in this study was downloaded from the ADNI website in October 2021.
+
+## Genotype data and quality control
+
+Quality control and inclusion/exclusion criteria closely follow that used in our previous brain arteriolosclerosis GWAS.[@shade2022] Genotype data for all cohorts have undergone imputation using the Trans-'Omics for Precision Medicine (TOPMed) Imputation Server and the TOPMed reference panel.[@taliun2021] NACC and ACT raw genotype data were obtained from the September 2020 freeze of the Alzheimer's Disease Genetics Consortium (ADGC) and subsequently imputed, while pre-imputed ROSMAP and ADNI genotype data were received from collaborators in the Hohman lab at Vanderbilt University in March 2021 and December 2021, respectively.
+
+Quality control on genotype data was performed separately for each cohort. Firstly, only participants labeled as non-Hispanic white or similar (European, etc.) were used if available. After imputation, duplicate samples and samples without autopsy data available were removed. Genetic variants and participants were iteratively removed under no variants were missing in more than 5% of participants and no participants were missing more than 5% of variants (however, average genotype coverage was 99.7%, and no variants or participants were actually removed during this process). Then, participants with unusually high or low (+/- 3 standard deviations from mean) were removed. Finally, participants were merged with the 1000 Genomes Phase 3 cohorts[@the1000genomesprojectconsortium2012], and participants with substantial non-European ancestry, as determined by distance from EUR superpopulation centroid in principal component analysis using the first two principal components, were removed. Some participants had NP and genotype data available in more than one cohort. In these cases, records in the larger cohort were preferentially kept and discarded in other cohorts (*i.e.* NACC \> ROSMAP \> ACT \> ADNI in preference).
+
+## Defining and harmonizing NPE
+
+We note that there are substantial differences in the way that NPE are collected in different cohorts, and our strategy for harmonizing was informed by practical considerations for maximizing available samples sizes given the available endophenotypes. Thus, several synthetic NPE were created by merging existing NPE within a cohort or by harmonizing categorical variables from one cohort and continuous variables from another. All code used for harmonization is available at <https://www.github.com/lincoln-shade/np_phewas>, and an overview of the harmonization strategy for each NPE is included in the **Supplemental Materials**.
 
 ## Statistical Analyses
 
-All the analyses discussed below were done on the data set with the combined cohorts.
-
 ### Single-variant GWAS
 
-Single-variant logistic regression analyses were performed in PLINK 2.0.[@chang2015; @purcell] Covariates included age at death, sex, cohort, and the first 10 genetic principle components. Continuous covariates were standardized to a mean of 0 and a variance of 1. An additive mode of inheritance was assumed in all analyses. Variants achieving a p-value of $< 5\times 10^{-8}$ were considered "genome-wide" significant. To identify independent genetic risk loci, variants were clumped using PLINK 1.9[@chang] using a linkage-disequilibrium threshold of $r^2 \le 0.05$.
+Ordinal variables were analyzed using proportional odds logistic mixed-effects models using the POLMM R package,[@bi2021] while binary variables were analyzed with logistic mixed-effects models using the SAIGE R package.[@zhou2018] Covariates included age at death, sex, cohort, and the first 10 genetic principle components created using the PC-AiR method in the GENESIS R package.[@conomos2015]. Dense genetic relationship matrices (GRM) created using a pruned set of independent ($r^2 < 0.2$) were used to account for relatedness between participants. An additive mode of inheritance was assumed in all analyses. Analyses proceeded in two stages: in stage one, null models with fixed covariates and GRM were fitted using either POLMM or SAIGE. In stage 2, score tests were performed on each variant with saddle-point approximation used to calculate p-values. Variants achieving a p-value of $p < 5\times 10^{-8}$ were considered "genome-wide" significant. To identify independent risk loci, variants were clumped using PLINK 1.9[@chang] with a linkage-disequilibrium threshold of $r^2 \le 0.05$.
 
-Ordinal variables were analyzed using proportional odds logistic mixed-effects models using the POLMM R package.[@bi2021] Dense kinship matrices were used to account for relatedness.
+For NPE available in multiple cohorts, single-variant analyses were first performed in NACC participants. Lead variants with p-values exceeding a suggestive threshold of $p < 1 \times 10^{-6}$ were then tested in ROSMAP, ACT, and/or ADNI as available for attempted validation. Participants were then pooled for genome-wide mega-analysis.
 
-### Conditional and mediation analyses
+To examine whether variants in the APOE region independent of $\epsilon$ haplotypes influence NPE risk, we re-analyzed Chromosome 19 using APOE $\epsilon$ diplotype as an additional covariate for NPE with significant association signals within the APOE locus. APOE diplotypes were determined using the rs7412 and rs429358 variants.
 
-For genetic loci associated with multiple NPE, we considered mediation hypotheses to test whether the association of the lead variant with one NPE was mediated by another NPE. Regression analyses were run in R using the `glm` or `polr` functions and mediation analyses were performed using the mediation[@tingley2014] R package with standard errors estimated using boot strap re-sampling with 1000 simulations.
+### Multivariate analyses
+
+Because many NPE have high phenotype correlation that single-outcome association analysis cannot take into account, we sought to perform genetic association analyses that could better account for the common co-occurrence of of NPE. We first assessed the phenotype correlation of NPE used in the pooled GWAS using polychoric correlation and grouped NPE visually using dendrograms.&&&
 
 ### Colocalization analyses
 
-All variants in each logistic GWAS with p-values $< 0.01$ were checked for significant quantitative trait locus (QTL) activity in the Genotype-Tissue Expression Project (GTEx) v8 European ancestry data set in 48 tissues. Colocalization analysis using the coloc R package (cite) was then performed on GWAS loci with significant QTLs. A prior probability of colocalization of $1\times 10^{-5}$ was used, and a posterior probability of colocalization (PPH4) \> 80% was used as a threshold for evidence of colocalization.
+All variants in each logistic GWAS with p-values $< 0.01$ were checked for significant quantitative trait locus (QTL) activity in the Genotype-Tissue Expression Project (GTEx) v8 European ancestry data set in 48 tissues and in ROSMAP bulk RNA-seq data in the dorsolateral prefrontal cortex. Colocalization analysis using the coloc R package (cite) was then performed on GWAS loci with significant QTLs. For ordinal variables, cut points widely used in previous studies were chosen to determine case-control proportions. A prior probability of colocalization of $1\times 10^{-5}$ was used, and a posterior probability of colocalization (PPH4) $> 80\%$ was used as a threshold for evidence of colocalization.
+
+To investigate whether shared GWAS signals drive association between multiple NPE, colocalization analysis was also performed on loci with variants exceeding the suggestive threshold of $p < 1 \times 10^{-6}$ for more than one NPE in the pooled mega-analytic GWAS.
+
+### Conditional and mediation analyses
+
+For genetic loci associated with multiple NPE, we considered mediation hypotheses to test whether the association of the lead variant with one NPE was mediated by another NPE. Regression analyses were run in R using the `glm` function for binary outcome traits or `polr` function in the MASS[@venables2002] package for ordinal traits. Mediation analyses were performed using the mediation[@tingley2014] R package with standard errors estimated using boot strap re-sampling with 1000 simulations. To assess the possibility of reverse causation, mediation analyses were performed with both NPE in each pair as outcomes.
+
+# Results
+
+```{r}
+covar <- fread("data/mega/mega_np.covar")
+nmega <- formatC(covar[, .N], big.mark = ",")
+nnacc <- formatC(covar[FID == "0", .N], big.mark = ",")
+nrosmap <- formatC(covar[FID == "1", .N], big.mark = ",")
+nact <- formatC(covar[FID == "2", .N], big.mark = ",")
+nadni <- formatC(covar[FID == "ADNI", .N], big.mark = ",")
+```
+
+```{r}
+t1_env <- new.env()
+source("code/manuscript/01_table1_participant_demographics.R",
+       local = t1_env)
+t1dt <- t1_env$t1dt
+```
+
+In total, `r nmega` participants across all cohorts underwent autopsy, had genotype data available, and passed quality control measures. This included `r nnacc` NACC, `r nrosmap` ROSMAP, `r nact` ACT, and `r nadni` ADNI participants. Participant demographics are shown in **Table 1**. NACC participants were younger (mean age-of-death 81 years) compared to ROSMAP (90 years) and ACT (88 years) participants, and had more balanced sex ratios, with 50% of NACC participants female vs. 68% and 58% in ROSMAP and ACT, respectively. NACC participants were also more likely to have an APOE $\epsilon 4$ allele (55%) vs. ROSMAP (25%) or ACT (28%). Across the 12 NPE harmonized across all four cohorts, NACC and ADNI tended to show more advanced neuropathology. Using CERAD neuritic plaque score as an example, 9% of NACC participants were rated as "none" for CERAD score, whereas 24% and 23% of ROSMAP and ACT participants were rated as "none," respectively. At the other extreme, 65% of NACC participants were rated as having "severe" neuritic plaque pathology, whereas only 33% and 27% of ROSMAP and ACT participants, respectively, were rated as such. This trend can be seen across **XX** of the NPE harmonized across cohorts and is shown in **Supplementary Table S2**.
+
+## Single-variant analysis
+
+# Tables
+
+```{r}
+t1_env$t1
+```

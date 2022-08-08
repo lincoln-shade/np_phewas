@@ -191,9 +191,10 @@ mega_np[!is.na(vcid) & (arteriol > 2 | atheroscler > 2), vcid := 3]
 mega_np[!is.na(vcid) & microinf == 1, vcid := 4]
 mega_np[!is.na(vcid) & grossinf == 1, vcid := 5]
 
-plink_pheno_vars <- c(colnames(pheno), 'diffuse_abeta3', 'late23', 
-                      'lewy_body123', 'part_def34')
-plink_pheno_vars <- plink_pheno_vars[plink_pheno_vars != "lewy"]
+plink_pheno_vars <- c("FID", "IID", "hs", "microinf", "grossinf")
+# plink_pheno_vars <- c(colnames(pheno), 'diffuse_abeta3', 'late23', 
+                      # 'lewy_body123', 'part_def34')
+# plink_pheno_vars <- plink_pheno_vars[plink_pheno_vars != "lewy"]
 
 fwrite(mega_np[, ..plink_pheno_vars], 
        file = "data/mega/mega_np.pheno", 
