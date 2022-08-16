@@ -211,4 +211,68 @@ fwrite(mega_np[, .(FID, IID, braak, cerad, diffuse_abeta, arteriol,
        na = -1)
 saveRDS(mega_np, file = "data/mega/mega_np.Rds")
 
+# cohort-stratified pheno files
+## nacc/adc
+fwrite(mega_np[FID == "0", ..plink_pheno_vars], 
+       file = "data/mega/nacc_np.pheno", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = -1)
+
+fwrite(mega_np[FID == "0", 
+               .(FID, IID, braak, cerad, diffuse_abeta, arteriol, 
+                 atheroscler, late, lewy_body, caa_ord, part_def,
+                 vcid)],
+       file = "data/mega/nacc_np_ord.pheno",
+       quote = FALSE,
+       sep = ' ',
+       na = -1)
+
+## rosmap
+fwrite(mega_np[FID == "1", ..plink_pheno_vars], 
+       file = "data/mega/rosmap_np.pheno", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = -1)
+
+fwrite(mega_np[FID == "1", 
+               .(FID, IID, braak, cerad, diffuse_abeta, arteriol, 
+                 atheroscler, late, lewy_body, caa_ord, part_def,
+                 vcid)],
+       file = "data/mega/rosmap_np_ord.pheno",
+       quote = FALSE,
+       sep = ' ',
+       na = -1)
+
+## act (no LATE data available)
+fwrite(mega_np[FID == "2", ..plink_pheno_vars], 
+       file = "data/mega/act_np.pheno", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = -1)
+
+fwrite(mega_np[FID == "2", 
+               .(FID, IID, braak, cerad, diffuse_abeta, arteriol, 
+                 atheroscler, lewy_body, caa_ord, part_def,
+                 vcid)],
+       file = "data/mega/act_np_ord.pheno",
+       quote = FALSE,
+       sep = ' ',
+       na = -1)
+
+## adni
+fwrite(mega_np[FID == "ADNI", ..plink_pheno_vars], 
+       file = "data/mega/adni_np.pheno", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = -1)
+
+fwrite(mega_np[FID == "ADNI", 
+               .(FID, IID, braak, cerad, diffuse_abeta, arteriol, 
+                 atheroscler, late, lewy_body, caa_ord, part_def,
+                 vcid)],
+       file = "data/mega/adni_np_ord.pheno",
+       quote = FALSE,
+       sep = ' ',
+       na = -1)
 

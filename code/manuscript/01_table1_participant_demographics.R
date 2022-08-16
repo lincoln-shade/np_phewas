@@ -42,8 +42,12 @@ t1 <- flextable(t1dt) %>%
   autofit() %>% 
   padding(padding = 2, part = "all") %>%
   add_header_lines("Table 1: Participant Demographics") %>% 
-  add_footer_lines("Selected NPE are shown in Table 1. All NPE summaries are shown in Supplementary Materials Table S2.") %>% 
-  add_footer_lines("Key: SD, standard deviation; Min, minimum; Max, maximum. Age of Death variable is integer for NACC, ADNI, and ACT but continuous in ROSMAP.")
+  add_footer_lines(paste0("Selected NPE are shown in Table 1. ",
+                          "All NPE summaries are shown in Supplementary ",
+                          "Materials Table S2.")) %>% 
+  add_footer_lines(paste0("Key: SD, standard deviation; Min, minimum; ",
+                          "Max, maximum. Age of Death variable is integer ",
+                          "in NACC, ADNI, and ACT but continuous in ROSMAP."))
 
 saveRDS(t1, 
         file = "output/manuscript/table1_participant_demographics.Rds")

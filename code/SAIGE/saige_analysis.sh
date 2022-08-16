@@ -26,7 +26,7 @@ for pheno in $phenos
     --nThreads=100 \
     --outputPrefix=./output/gwas/mega/saige/"$pheno"_saige \
     --IsOverwriteVarianceRatioFile=TRUE
-  
+
   for chr in $(seq 1 22)
     do
     plink=./data/mega/plink/mega_np_chr"$chr"
@@ -44,4 +44,17 @@ for pheno in $phenos
       --is_output_moreDetails=TRUE \
       --LOCO=TRUE
     done
+  done
+
+# aggregate results into one file for each outcome
+Rscript --vanilla ./code/SAIGE/cat_results.R
+
+for pheno in $phenos
+  do
+  python ./code/gwas/clump_snps.py \
+    -r output/gwas/mega/saige/"$pheno"_saige_results.txt \
+    -o output/gwas/mega/saige/"$pheno"_saige_results \
+    -b data/mega/mega_np \
+    --snp_field MarkerID \
+    --p_field p.value
   done

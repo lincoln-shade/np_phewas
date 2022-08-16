@@ -31,3 +31,17 @@ make_or_95_ci <- function(or, l95, u95, or_ref, round_digits=2,
 }
 make_or_95_ci <- Vectorize(make_or_95_ci, 
                            vectorize.args = c("or", "l95", "u95", "or_ref"))
+
+make_95CI <- function(or, p, ci=0.95) {
+  beta <- log(or)
+  lt_zero <- beta < 0
+  z <- qnorm(p * 2, lower.tail = lt_zero)
+  sd <- beta / z
+  zrad <- qnorm((1 - ci) / 2, lower.tail = FALSE)
+  upper <- round(exp(beta + zrad * sd), 2)
+  lower <- round(exp(beta - zrad * sd), 2)
+  conf_int <- paste0(lower, "-", upper)
+  return(conf_int)
+}
+
+make_95CI <- Vectorize(make_95CI)

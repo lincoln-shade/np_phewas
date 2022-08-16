@@ -93,4 +93,41 @@ fwrite(covar,
        sep = ' ', 
        na = NA)
 
+# stratify by cohort
+## nacc
+fwrite(covar[FID == "0",
+             .(FID, IID, age_death, msex, pc1, pc2, pc3, pc4, pc5, pc6,
+               pc7, pc8, pc9, pc10, adgc_2, adgc_3, adgc_4, adgc_5, adgc_6,
+               adgc_7, adgc_8, adgc_9, adgc_10, adgc_11, adgc_12)], 
+       file = "data/mega/nacc_np.covar", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = NA)
+
+## rosmap
+fwrite(covar[FID == "1",
+             .(FID, IID, age_death, msex, pc1, pc2, pc3, pc4, pc5, pc6,
+               pc7, pc8, pc9, pc10, ROS)], 
+       file = "data/mega/rosmap_np.covar", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = NA)
+
+## act
+fwrite(covar[FID == "2",
+             .(FID, IID, age_death, msex, pc1, pc2, pc3, pc4, pc5, pc6,
+               pc7, pc8, pc9, pc10, ACT2, ACT3)], 
+       file = "data/mega/act_np.covar", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = NA)
+
+## adni (only adjust for first 3 pcs since sample size small)
+fwrite(covar[FID == "ADNI",
+             .(FID, IID, age_death, msex, pc1, pc2, pc3)], 
+       file = "data/mega/adni_np.covar", 
+       quote = FALSE, 
+       sep = ' ', 
+       na = NA)
+
 

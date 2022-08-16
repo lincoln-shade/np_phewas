@@ -18,7 +18,7 @@ parser$add_argument("-k", "--grm",
                     help="path to SparseGRM .Rds file. Not currently used.")
 parser$add_argument("-b", "--plink", help="plink fileset prefix")
 parser$add_argument("-o", "--out", 
-                    help="path for output file")
+                    help="path for .Rds output file")
 parser$add_argument("--phenotype", help="phenotype name")
 parser$add_argument("--ncores",
                     help = "number of CPU cores to use (default is 1/2 max)")

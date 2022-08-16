@@ -3,21 +3,28 @@
 # annote a variant to the nearest gene
 #======================================================
 
-find_closest_gene <- function(chr, bp, g) {
+find_closest_gene <- function(chr, bp, g, 
+                              chrom_col="chr", 
+                              pos_col="value",
+                              gene_col="gene_name") {
   # chr = chromosome of variant
   # bp = base pair of variant
   # g = data.table with following columns
-  #   V2: Chromosome of gene
-  #   value: Start or end site of gene (best to use data table with
+  #   chrom_col: Chromosome of gene
+  #   pos_col: Start or end site of gene (best to use data table with
   #     two rows per gene -- 1 with start and one with end position)
-  #   V6: Gene name
+  #   gene_col: Gene name
   require(data.table)
   g <- as.data.table(g)
-  chr <- as.character(chr)
+  snp_chr <- as.character(chr)
   closest_gene <-
-    g[V2 == chr
-    ][
-      abs(value - bp) == min(abs(value - bp)), V6]
+    g[as.character(get(chrom_col)) == snp_chr][
+      abs(get(pos_col) - bp) == min(abs(get(pos_col) - bp)), get(gene_col)]
+  
+  if (length(closest_gene) > 1) {
+    closest_gene <- paste(closest_gene, collapse = "/")
+  }
+  
   return(closest_gene)
 }
 

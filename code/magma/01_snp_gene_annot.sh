@@ -10,5 +10,5 @@ cat raw_data/NCBI38.gene.loc | \
 magma \
   --snp-loc data/mega/mega_np.bim \
   --gene-loc tmp/hg38.gene.loc \
-  --annotate window=100 \
+  --annotate window=10 \
   --out data/mega/snp_gene_annot_hg38

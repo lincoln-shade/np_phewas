@@ -16,7 +16,8 @@ parser$add_argument("-l", "--snp_matrix_list",
                     default = "data/mega/SnpMatrix/SnpMatrix_list.Rds",
                     help = paste("path to .Rds file of vector", 
                                  "of SnpMatrix .Rds filenames"))
-parser$add_argument("-o", "--out", help = "path to text file to save results")
+parser$add_argument("--snp_matrix", help = "path to SnpMatrix .Rds file")
+parser$add_argument("-o", "--out", help = "path to .Rds file to save results")
 args <- parser$parse_args()
 
 if (is.null(args$model)) {
@@ -24,12 +25,20 @@ if (is.null(args$model)) {
 }
 
 if (!file.exists(args$model)) {stop(paste0(args$model, "doesn't exist"))}
-if (!file.exists(args$snp_matrix_list)) {
+if (!is.null(args$snp_matrix_list) & !file.exists(args$snp_matrix_list)) {
   stop(paste0(args$snp_matrix_list, "doesn't exist"))
 }
 
+if (!is.null(args$snp_matrix)) {
+  snp_mat_files <- args$snp_matrix
+  warning(paste0("Both --snp_matrix_list and --snp_matrix supplied.",
+          " Using --snp_matrix and ignoring --snp_matrix_list."))
+} else{
+  snp_mat_files <- readRDS(args$snp_matrix_list)
+}
+
+
 null_model <- readRDS(args$model)
-snp_mat_files <- readRDS(args$snp_matrix_list)
 results_list <- vector("list", length = length(snp_mat_files))
 
 for (i in 1:length(snp_mat_files)) {
