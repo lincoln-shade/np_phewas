@@ -1,5 +1,5 @@
 #==========================================
-# Produce Table 2: GWAS results summary
+# Produce Table S3: GWAS results summary
 #==========================================
 
 library(data.table)
@@ -143,7 +143,7 @@ results_top[, `95% CI` := make_95CI(OR, P)]
 setnames(results_top, "BP", "Position")
 setcolorder(results_top, c("Chromosome", "Position", "Phenotype"))
 results_signif <- 
-  results_top[P < 5e-8, 
+  results_top[P < 1e-5, 
               .(Phenotype, Gene, Variant, Chromosome, Position, 
                 `Minor/major allele`, OR, `95% CI`, P)
   ]
@@ -156,7 +156,7 @@ results_signif <- results_signif[
       (Phenotype == "Braak NFT Stage" & Variant == "rs11668327") |
       (Phenotype == "CERAD Score" & Variant == "rs365653"))
 ]
-setorder(results_signif, Chromosome, Position, Phenotype)
+setorder(results_signif, Phenotype, Chromosome, Position)
 
 t2 <- flextable(results_signif) %>% 
   autofit() %>% 
@@ -189,7 +189,7 @@ t2 <- flextable(results_signif) %>%
              as_paragraph("Locus in APOE region"), 
            ref_symbols = c("e")) %>% 
   style(j = 2, 
-       pr_t = fp_text_default(
-         italic = TRUE)) 
+        pr_t = fp_text_default(
+          italic = TRUE)) 
 
 t2

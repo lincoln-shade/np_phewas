@@ -1,0 +1,113 @@
+---
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(data.table)
+library(flextable)
+library(magrittr)
+library(table1)
+```
+
+# Supplementary Material
+
+## NACC Exclusion Criteria
+
+National Alzheimer's Coordinating Center (NACC) participants were excluded if they had any of the following conditions noted in the NACC Neuropathology Data Set. Variable names and descriptions are taken from <https://files.alz.washington.edu/documentation/rdd-np.pdf>. Variable descriptions may be lightly edited. Participants were not excluding for missing data in any of these fields.
+
+```{r}
+table_s1 <- fread("doc/nacc_exclusion_variables.txt", sep = "|") %>% 
+  flextable() %>% 
+  add_header_lines("Table S1: NACC Exclusion Criteria")
+
+table_s1
+```
+
+\newpage
+
+```{r}
+
+pord <- fread("data/mega/mega_np_ord.pheno", na.strings = '-1')
+pbin <- fread("data/mega/mega_np.pheno", na.strings = '-1')
+pheno <- merge(pord, pbin, c("FID", "IID"))
+covar <- fread("data/mega/mega_np.covar")
+covar_apoe <- fread("data/mega/mega_np_apoe.covar", stringsAsFactors = TRUE)
+covar <- merge(covar, 
+               covar_apoe[, .(FID, IID, apoe)], 
+               c("FID", "IID"), 
+               all.x = TRUE)
+covar <- covar[, .(FID, IID, msex, age_death, apoe)]
+covar[, Sex := factor(msex, labels = c("Female", "Male"))]
+
+dt <- merge(pheno, covar, by = c("FID", "IID"))
+setnames(dt, "age_death", "Age of Death")
+dt[, Study := factor(FID, labels = c("NACC", "ROSMAP", "ACT", "ADNI"))]
+dt[, CERAD := ordered(cerad, 
+                        labels = c("None", "Mild", "Moderate", "Severe"))]
+
+# Display apoe variable as number of APOE e4 alleles for table
+dt[apoe %in% c("apoe22", "apoe23", "apoe33"), 
+     `APOE e4 alleles` := 0]
+dt[apoe %in% c("apoe24", "apoe34"), 
+     `APOE e4 alleles` := 1]
+dt[apoe %in% c("apoe44"), 
+     `APOE e4 alleles` := 2]
+dt[, `APOE e4 alleles` := ordered(`APOE e4 alleles`)]
+
+# add all other NPE used as outcomes
+dt[, `Braak Stage` := ordered(braak)]
+dt[, `Diffuse Amyloid` := 
+     ordered(diffuse_abeta, 
+             labels = c("None", "Mild", "Moderate", "Severe"))]
+dt[, Arteriolosclerosis := 
+     ordered(arteriol, 
+             labels = c("None", "Mild", "Moderate", "Severe"))]
+dt[, Atherosclerosis := 
+     ordered(atheroscler, 
+             labels = c("None", "Mild", "Moderate", "Severe"))]
+dt[, CAA := 
+     ordered(caa_ord, 
+             labels = c("None", "Mild", "Moderate", "Severe"))]
+dt[, `LATE-NC` := 
+     ordered(late, 
+             labels = c("None", "Mild", "Moderate", "Severe"))]
+dt[, `Lewy Body` := 
+     ordered(lewy_body, 
+             labels = c("None", "Mild", "Moderate", "Severe"))]
+dt[, HS := factor(hs, labels = c("Absent", "Present"))]
+dt[, Microinfarcts := factor(microinf, labels = c("Absent", "Present"))]
+dt[, `Gross infarcts` := factor(grossinf, labels = c("Absent", "Present"))]
+
+t1dt <- 
+  as.data.frame(
+    table1(~ Sex + `Age of Death` + `APOE e4 alleles` + CERAD + 
+             `Braak Stage`+ `Diffuse Amyloid` + Arteriolosclerosis +
+             Atherosclerosis + CAA + `LATE-NC` + `Lewy Body` + HS +
+             Microinfarcts + `Gross infarcts`| Study,
+           data = dt
+           )
+    ) 
+
+t1 <- flextable(t1dt) %>% 
+  autofit() %>% 
+  padding(padding = 2, part = "all") %>%
+  add_header_lines("Table S2: Participant Demographics") %>% 
+  add_footer_lines(paste0("Key: SD, standard deviation; Min, minimum; ",
+                          "Max, maximum. LATE-NC, LATE neuropathologic change",
+                          " HS, Hippocampal sclerosis",
+                          "Age of Death variable is integer ",
+                          "in NACC, ADNI, and ACT but continuous in ROSMAP."))
+
+# saveRDS(t1, 
+#         file = "output/manuscript/tableS1_participant_demographics.Rds")
+t1
+```
+
+\newpage
+
+![Figure S1: Dendrogram of Neuropathology Endophenotype Polychoric Correlations](doc/figure_S1_dendrogram.png)
+

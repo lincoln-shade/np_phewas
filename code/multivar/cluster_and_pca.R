@@ -27,8 +27,7 @@ pca <- principal(pheno_pca,
 # Two major clusters found corresponding roughly to:
 #   1. Alzheimer's NP : Braak, CERAD, diffuse amyloid, and CAA
 #   2. Vascular NP    : gross/micro infarcts, athero/arteriolosclerosis
-pheno_dist <- dist(polychoric(pheno_pca)$rho)
-plot(hclust(pheno_dist))
+
 
 # PCA on Alzheimer's cluster variables
 pheno_adnp <- pheno_pca[, .(braak, cerad, caa_ord, diffuse_abeta)]
