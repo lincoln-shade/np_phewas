@@ -9,7 +9,7 @@ adni <- fread("data/adni/adni_np.pheno", na.strings = '-1')
 fam <- fread("data/mega/mega_np.fam")
 
 act_np <- as.data.table(read_xlsx("raw_data/act/DataForE235_20210421.xlsx",
-                               sheet = 2))
+                                  sheet = 2))
 adc_np <- setDT(readRDS("data/adc/np_qced.Rds")) # %>%
   # replace_with_na_all(condition = ~.x == -1)
 setDT(adc_np)

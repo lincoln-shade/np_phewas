@@ -33,12 +33,11 @@ cat "output/gwas/mega/polmm/caa_ord_apoe_polmm_results.txt" | \
     --pop EUR \
     --delim space \
     --no-date \
-    ymax=12 \
+    ymax=13 \
     legend="none" \
-    geneFontSize=1.18 \
-    axisTextSize=1.4 \
+    geneFontSize=1 \
+    axisTextSize=1 \
     refsnpTextSize=1.2 \
     showRecomb=FALSE \
     signifLine="7.3" \
-    rfrows=4	\
     --prefix doc/

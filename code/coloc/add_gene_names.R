@@ -3,9 +3,9 @@ library(data.table)
 library(rtracklayer)
 library(stringi)
 
-genes <- rtracklayer::import('/home/lmsh224/gencode.v40.annotation.gtf.gz')
+genes <- rtracklayer::import('/home/lmsh224/downloads/gencode.v40.annotation.gtf.gz')
 genes <- as.data.table(genes)
-genes[, gene_id_trunc := stri_replace_all_regex(gene_id, '[.].*', '')]
+genes[, gene_id_trunc := stri_replace_all_regex(gene_id, '\\..*', '')]
 
 coloc_dir <- 'output/coloc/mega/'
 coloc_files <- list.files(coloc_dir)
