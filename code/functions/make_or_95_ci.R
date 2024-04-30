@@ -35,7 +35,7 @@ make_or_95_ci <- Vectorize(make_or_95_ci,
 make_95CI <- function(or, p, ci=0.95) {
   beta <- log(or)
   lt_zero <- beta < 0
-  z <- qnorm(p * 2, lower.tail = lt_zero)
+  z <- qnorm(p / 2, lower.tail = lt_zero)
   sd <- beta / z
   zrad <- qnorm((1 - ci) / 2, lower.tail = FALSE)
   upper <- round(exp(beta + zrad * sd), 2)
@@ -45,3 +45,12 @@ make_95CI <- function(or, p, ci=0.95) {
 }
 
 make_95CI <- Vectorize(make_95CI)
+
+estimate_se_from_beta_and_p <- function(beta, p) {
+  if (p <= 0 | p >= 1) {return(NA)}
+  z <- qnorm(p / 2, lower.tail = FALSE)
+  sd <- abs(beta) / z
+  return(sd)
+}
+
+estimate_se_from_beta_and_p = Vectorize(estimate_se_from_beta_and_p)

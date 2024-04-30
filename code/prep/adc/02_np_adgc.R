@@ -4,7 +4,7 @@ library(magrittr)
 
 na_strings <- c("-9", "-4", "9999", "999", "888")
 # Universal Data Set + NP
-uds <- fread("/data_global/nacc/investigator_nacc57.csv", 
+uds <- fread("/data_global/nacc/investigator_nacc61.csv", 
              na.strings = na_strings)
 # NP data not longitudinal, so just keep obs from last visit
 uds <- uds[NACCVNUM == NACCAVST]

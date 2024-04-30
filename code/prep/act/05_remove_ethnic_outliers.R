@@ -2,12 +2,14 @@
 ## create PCA plot of 1KG and adc NP subjects
 ##----------------------------------------------
 
-library(pacman)
-p_load(data.table, magrittr, ggplot2)
+
+library(data.table)
+library(magrittr)
+library(ggplot2)
 cargs <- commandArgs(trailingOnly = TRUE)
 merged_eigenvec_file <- cargs[1]
 study <- cargs[2]
-study_ids <- fread(paste0("data/tmp/", study, "_qc1.tmp.fam"), header = F)
+study_ids <- fread(paste0("tmp/", study, "_qc1.tmp.fam"), header = F)
 
 # 1000g (otg) data population data
 otg <- fread("/data_global/1000g/integrated_call_samples_v3.20130502.ALL.panel") %>% 
@@ -112,10 +114,8 @@ ggsave(filename = paste0("doc/", study, "_1000g_pca.png"),
        height=7)
 
 fwrite(study_ids, 
-            file = paste0("data/tmp/", study, "_qced.txt"), 
+            file = paste0("tmp/", study, "_qced.txt"), 
             col.names = F, 
             sep = " ", 
             quote = F)
 
-p_unload(all)
-rm(list = ls())

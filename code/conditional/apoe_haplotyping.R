@@ -6,7 +6,10 @@ nacc <- fread('data/adc/apoe_snps.raw')
 rosmap <- fread('data/rosmap/apoe_snps.raw')
 act <- fread('data/act/apoe_snps.raw')
 adni <- fread('data/adni/apoe_snps.raw')
-covar <- fread('data/mega/mega_np.covar')
+# covar <- fread('data/mega/mega_np.covar')
+nacc_covar = fread("data/adc/adc_np.covar")
+rosmap_covar = fread("data/rosmap/rosmap_np.covar")
+act_covar = fread("data/act/act_np.covar")
 
 nacc[, FID := as.character(FID)]
 nacc[, FID := '0']
@@ -20,9 +23,6 @@ act[, FID := as.character(FID)]
 act[, FID := '2']
 act[, IID := stri_replace_first_regex(IID, '.*_', '')]
 setnames(act, colnames(act)[7:8], c('rs429358_C', 'rs7412_T'))
-
-adni[, FID := as.character(FID)]
-adni[, FID := 'ADNI']
 
 apoe <- rbindlist(list(nacc, rosmap, act, adni), use.names = TRUE)
 apoe[, `:=`(PAT = NULL, MAT = NULL, SEX = NULL, PHENOTYPE = NULL)]
@@ -47,7 +47,24 @@ apoe <- apoe[!(FID == '0' & IID %in% IID[duplicated(IID)])]
 apoe <- apoe[apoe != 'apoe14']
 apoe[, `:=`(rs429358_C = NULL, rs7412_T = NULL)]
 
-apoe_covar <- merge(covar, apoe, c('FID', 'IID'))
+nacc_covar[, FID := as.character(FID)]
+nacc_covar[, IID := as.character(IID)]
+nacc_covar = merge(nacc_covar, apoe, c('FID', 'IID'))
 
-fwrite(apoe_covar, file = "data/mega/mega_np_apoe.covar", 
+rosmap_covar[, FID := as.character(FID)]
+rosmap_covar[, IID := as.character(IID)]
+rosmap_covar = merge(rosmap_covar, apoe, c('FID', 'IID'))
+
+act_covar[, FID := as.character(FID)]
+act_covar[, IID := as.character(IID)]
+act_covar = merge(act_covar, apoe, c('FID', 'IID'))
+act_covar = act_covar[apoe != "apoe22"] # only 3 individuals
+
+fwrite(nacc_covar, file = "data/adc/adc_np_apoe.covar", 
+       sep = ' ', quote = FALSE)
+
+fwrite(rosmap_covar, file = "data/rosmap/rosmap_np_apoe.covar", 
+       sep = ' ', quote = FALSE)
+
+fwrite(act_covar, file = "data/act/act_np_apoe.covar", 
        sep = ' ', quote = FALSE)

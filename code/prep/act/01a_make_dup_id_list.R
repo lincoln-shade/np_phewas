@@ -7,9 +7,9 @@ p_load(data.table, magrittr, stringi)
 cargs <- commandArgs(trailingOnly = TRUE)
 prefix <- "act"
 np_ids <- fread("data/act_np_ids.txt", header = FALSE)
-miss <- fread(paste0("data/tmp/", prefix, "_dup.imiss"))
-fam <- fread("data/plink/act.fam", header = FALSE)
-related <- fread(paste0("data/tmp/", prefix, "_dup.con"))
+miss <- fread(paste0("tmp/", prefix, "_dup.imiss"))
+fam <- fread("data/act/act.fam", header = FALSE)
+related <- fread(paste0("tmp/", prefix, "_dup.con"))
 setnames(related, c("ID1", "ID2"), c("IID1", "IID2"))
 related[, PI_HAT := (2 * N_IBS2 + N_IBS1) / (2 * (N_IBS0 + N_IBS1 + N_IBS2))]
 related[, pair := 1:.N]
@@ -51,7 +51,7 @@ iid_remove <- c(iid_remove,
 id_remove <- fam[V2 %in% iid_remove, .(V1, V2)]
 
 write.table(id_remove, 
-            file = paste0("data/tmp/", prefix, "_dup_remove.tmp"), 
+            file = paste0("tmp/", prefix, "_dup_remove.tmp"), 
             quote = F, 
             row.names = F, 
             col.names = F)

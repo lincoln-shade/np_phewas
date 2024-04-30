@@ -19,6 +19,9 @@ parser$add_argument("-l", "--snp_matrix_list",
 parser$add_argument("--snp_matrix", help = "path to SnpMatrix .Rds file")
 parser$add_argument("-o", "--out", help = "path to .Rds file to save results")
 args <- parser$parse_args()
+# args$model = "output/gwas/act/polmm/diffuse_abeta_null_model.Rds"
+# args$out = "tmp/act_diffuse_abeta_polmm_results_test.Rds"
+# args$snp_matrix = "data/act/SNPMatrix/SnpMatrix_4.Rds"
 
 if (is.null(args$model)) {
   stop("--model is a required argument")
@@ -55,7 +58,7 @@ for (i in 1:length(snp_mat_files)) {
     )
   )
   results_list[[i]] <- polmm
-  rm(mat, g, chrs, polmm)
+  # rm(mat, g, chrs, polmm)
 }
 
 results <- rbindlist(results_list)

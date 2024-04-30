@@ -8,7 +8,7 @@ cat raw_data/NCBI38.gene.loc | \
   > tmp/hg38.gene.loc
 
 magma \
-  --snp-loc data/mega/mega_np.bim \
+  --snp-loc data/adc/adc_np.bim \
   --gene-loc tmp/hg38.gene.loc \
   --annotate window=10 \
-  --out data/mega/snp_gene_annot_hg38
+  --out data/adc/snp_gene_annot_hg38

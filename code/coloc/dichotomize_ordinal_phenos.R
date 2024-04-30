@@ -2,7 +2,7 @@
 # dichotomize ordinal phenotypes for colocalization analysis
 library(data.table)
 
-phenos <- fread("data/mega/mega_np_ord.pheno", na.strings = "-1")
+phenos <- fread("shared/nacc_rosmap_act_np.pheno", na.strings = "")
 
 # braak stage: 0-3 vs 4-6
 phenos[braak < 4, braak := 0]
@@ -12,7 +12,7 @@ phenos[braak > 0, braak := 1]
 phenos[cerad < 2, cerad := 0]
 phenos[cerad > 0, cerad := 1]
 
-# diffuse_abeta: 0-1 vs 2-3
+# # diffuse_abeta: 0-1 vs 2-3
 phenos[diffuse_abeta < 2, diffuse_abeta := 0]
 phenos[diffuse_abeta > 0, diffuse_abeta := 1]
 
@@ -33,7 +33,7 @@ phenos[lewy_body < 3, lewy_body := 0]
 phenos[lewy_body > 0, lewy_body := 1]
 
 # caa_ord: 0-1 vs 2-3
-phenos[caa_ord < 2, caa_ord := 0]
-phenos[caa_ord > 0, caa_ord := 1]
+phenos[caa < 2, caa := 0]
+phenos[caa > 0, caa := 1]
 
-fwrite(phenos, "data/mega//mega_np_ord_dichotomized.pheno", na = "NA")
+fwrite(phenos, "shared/nacc_rosmap_act_np_dichotomized.pheno")

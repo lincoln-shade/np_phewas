@@ -4,7 +4,7 @@
 
 library(data.table)
 library(stringi)
-bim <- fread("data/tmp/act_no_dup.bim")
+bim <- fread("tmp/act_no_dup.bim")
 rsid <- fread("raw_data/common_snps.txt", skip = 2)
 rsid[, V1 := as.integer(stri_replace_first_fixed(V1, "chr", ""))]
 rsid[, V2 := V2 + 1]
@@ -31,7 +31,7 @@ rsid_linker_use <- rsid_linker[((V6bim == V4rsid) & (V5bim == V6rsid)) |
                                  , ]
 rsid_linker_use[, V3rsid := paste0(V3rsid, ":", V6bim, ":", V5bim)]
 fwrite(rsid_linker_use[!(duplicated(V2)), .(V2, V3rsid)], 
-       file = "data/tmp/rsid_linker.tmp", 
+       file = "tmp/rsid_linker.tmp", 
        col.names = FALSE, 
        quote = FALSE, 
        sep = " "

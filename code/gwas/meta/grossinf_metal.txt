@@ -1,0 +1,18 @@
+GENOMICCONTROL ON
+AVERAGEFREQ ON
+MINMAXFREQ ON
+SCHEME STDERR
+STDERR SE
+SEPARATOR COMMA
+MARKER MarkerID
+ALLELE Allele2 Allele1
+EFFECT BETA
+WEIGHT N
+PVAL p.value
+FREQ AF_Allele2
+PROCESS output/gwas/metal/input/nacc_grossinf.csv
+PROCESS output/gwas/metal/input/rosmap_grossinf.csv
+PROCESS output/gwas/metal/input/act_grossinf.csv
+OUTFILE ./output/gwas/metal/results/grossinf .tbl
+ANALYZE HETEROGENEITY
+QUIT 

@@ -1,0 +1,18 @@
+GENOMICCONTROL ON
+SEPARATOR COMMA
+AVERAGEFREQ ON
+MINMAXFREQ ON
+SCHEME STDERR
+STDERR SE
+MARKER SNPID
+ALLELE A1 A2
+EFFECT beta
+WEIGHT N
+PVAL pval.spa
+FREQ MAF
+PROCESS output/gwas/metal/input/nacc_cerad.csv
+PROCESS output/gwas/metal/input/act_cerad.csv
+PROCESS output/gwas/metal/input/rosmap_cerad.csv
+OUTFILE ./output/gwas/metal/results/cerad .tbl
+ANALYZE HETEROGENEITY
+QUIT

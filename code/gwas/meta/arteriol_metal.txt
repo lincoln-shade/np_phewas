@@ -1,0 +1,18 @@
+GENOMICCONTROL ON
+SEPARATOR COMMA
+AVERAGEFREQ ON
+MINMAXFREQ ON
+SCHEME STDERR
+STDERR SE
+MARKER SNPID
+ALLELE A1 A2
+EFFECT beta
+WEIGHT N
+PVAL pval.spa
+FREQ MAF
+PROCESS output/gwas/metal/input/nacc_arteriol.csv
+PROCESS output/gwas/metal/input/act_arteriol.csv
+PROCESS output/gwas/metal/input/rosmap_arteriol.csv
+OUTFILE ./output/gwas/metal/results/arteriol .tbl
+ANALYZE HETEROGENEITY
+QUIT

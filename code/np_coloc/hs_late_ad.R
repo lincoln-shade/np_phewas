@@ -3,7 +3,7 @@ library(ggplot2)
 library(coloc)
 
 bel2022 <- 
-  fread("/data_global/summary_statistics/GCST90027158_buildGRCh38.tsv.gz")
+  fread("/data_global/summary_statistics/Bellenguez/GCST90027158_buildGRCh38.tsv.gz")
 bel2022 <- bel2022[!which(duplicated(variant_id))]
 hs <- fread("output/gwas/mega/saige/hs_saige_results.txt")
 hs_pheno <- fread("data/mega/mega_np.pheno", na.strings = "-1")

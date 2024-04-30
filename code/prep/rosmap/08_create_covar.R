@@ -32,7 +32,7 @@ setnames(rosmap_np, 'study', 'ROS')
 rosmap_np[ROS == 'ROS', ROS := '1']
 rosmap_np[ROS == 'MAP', ROS := '0']
 rosmap_np[, table(ROS)]
-rosmap_np[, age_death2 := age_death^2]
+# rosmap_np[, age_death2 := age_death^2]
 
 
 fwrite(rosmap_np, 

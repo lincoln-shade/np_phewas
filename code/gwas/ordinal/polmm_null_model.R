@@ -27,12 +27,12 @@ args <- parser$parse_args()
 # #---------------------------------------------
 # # test args
 # args <- list(
-#   covar = "data/mega/mega_np.covar",
+#   covar = "data/act/act_np.covar",
 #   grm = NULL,
-#   out = "output/gwas/mega/polmm/diffuse_abeta_null_model.Rds",
-#   pheno = "data/mega/mega_np_ord.pheno",
-#   phenotype = "diffuse_abeta",
-#   plink = "tmp/mega_np_prune",
+#   out = "output/gwas/act/polmm/late_null_model.Rds",
+#   pheno = "data/act/act_np.pheno",
+#   phenotype = "late",
+#   plink = "data/act/act_np_pruned",
 #   ncores = "80"
 # )
 # #---------------------------------------------

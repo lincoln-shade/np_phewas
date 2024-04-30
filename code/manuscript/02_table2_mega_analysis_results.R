@@ -9,25 +9,20 @@ library(flextable)
 source("code/functions/find_closest_gene.R")
 source("code/functions/make_or_95_ci.R")
 
-bim <- fread("data/mega/mega_np.bim")
+bim <- fread("data/adc/adc_np.bim")
 setnames(bim, 
          c("V1", "V2", "V4", "V5", "V6"), 
          c("CHR", "SNP", "BP", "A1", "A2"))
-pheno_ord <- fread("data/mega/mega_np_ord.pheno")
-pheno_bin <- fread("data/mega/mega_np.pheno")
 
-results_files_ord <- paste0("output/gwas/mega/polmm/", 
-                            colnames(pheno_ord)[3:ncol(pheno_ord)],
-                            "_polmm_results.txt")
-results_files_bin <- paste0("output/gwas/mega/saige/",
-                            colnames(pheno_bin)[3:ncol(pheno_bin)],
-                            "_saige_results.txt")
-clump_files_ord <- paste0("output/gwas/mega/polmm/", 
-                          colnames(pheno_ord)[3:ncol(pheno_ord)],
-                          "_polmm_results.clumped")
-clump_files_bin <- paste0("output/gwas/mega/saige/",
-                          colnames(pheno_bin)[3:ncol(pheno_bin)],
-                          "_saige_results.clumped")
+pheno = fread("shared/nacc_rosmap_act_np.pheno")
+
+results_files <- paste0(
+  "output/gwas/metal/results/", colnames(pheno)[3:ncol(pheno)], "1.csv"
+)
+
+clump_files <- paste0(
+  "output/gwas/metal/results/", colnames(pheno)[3:ncol(pheno)], "1_clump.clumped"
+)
 
 get_results_list <- function(files) {
   nfiles <- length(files)
@@ -38,83 +33,71 @@ get_results_list <- function(files) {
   return(file_list)
 }
 
-# collate binary and ordinal outcome results
-results_ord <- get_results_list(results_files_ord)
-for (i in 1:(ncol(pheno_ord) - 2)) {
-  results_ord[[i]][, Phenotype := colnames(pheno_ord)[i + 2]]
-}
-results_ord <- rbindlist(results_ord)
+# collate results
+results <- get_results_list(results_files)
 
-results_bin <- get_results_list(results_files_bin)
-for (i in 1:(ncol(pheno_bin) - 2)) {
-  results_bin[[i]][, Phenotype := colnames(pheno_bin)[i + 2]]
+for (i in 1:(ncol(pheno) - 2)) {
+  results[[i]][, Phenotype := colnames(pheno)[i + 2]]
 }
-results_bin <- rbindlist(results_bin)
+results <- rbindlist(results)
+
 
 # add significant locus from APOE-adjusted CAA analysis
-caa_apoe_results <- 
-  fread("output/gwas/mega/polmm/caa_ord_apoe_polmm_results.txt")
+caa_apoe_results <- fread("output/gwas/metal/results/caa_apoe1.csv")
 
 # collate clumped results
-results_clump_ord <- get_results_list(clump_files_ord)
-names(results_clump_ord) <- colnames(pheno_ord)[3:ncol(pheno_ord)]
-for (i in 1:(ncol(pheno_ord) - 2)) {
-  results_clump_ord[[i]][, Phenotype := colnames(pheno_ord)[i + 2]]
-}
-results_clump_ord <- rbindlist(results_clump_ord)
-results_ord_top <- merge(results_ord, 
-                         results_clump_ord[, .(SNP, Phenotype)], 
-                         by.x = c("SNPID", "Phenotype"),
-                         by.y = c("SNP", "Phenotype"))
-results_ord_top <- 
-  results_ord_top[, .(Phenotype, SNPID, chr, MAF, beta, pval.spa)]
-setnames(results_ord_top, 
-         colnames(results_ord_top),
-         c("Phenotype", "Variant", "Chromosome", "MAF", "Beta", "P"))
+results_clump <- get_results_list(clump_files)
 
-results_clump_bin <- get_results_list(clump_files_bin)
-for (i in 1:(ncol(pheno_bin) - 2)) {
-  results_clump_bin[[i]][, Phenotype := colnames(pheno_bin)[i + 2]]
-}
-results_clump_bin <- rbindlist(results_clump_bin)
-results_bin_top <- merge(results_bin, 
-                         results_clump_bin[, .(SNP, Phenotype)], 
-                         by.x = c("MarkerID", "Phenotype"),
-                         by.y = c("SNP", "Phenotype"))
+names(results_clump) <- colnames(pheno)[3:ncol(pheno)]
 
-results_bin_top <- 
-  results_bin_top[, .(Phenotype, MarkerID, CHR, 1-AF_Allele2, 
-                      BETA, p.value)]
-setnames(results_bin_top, 
-         colnames(results_bin_top),
-         c("Phenotype", "Variant", "Chromosome", "MAF", "Beta", "P"))
-# In SAIGE, effect sizes are wrt major allele (allele 2), so need to
-# reverse sign of beta to get effect sizes wrt to minor allele
-results_bin_top[MAF < 0.5, Beta := -Beta]
-caa_apoe_clumped <- 
-  fread("output/gwas/mega/polmm/caa_ord_apoe_polmm_results.clumped")
-caa_apoe_top <- merge(caa_apoe_results, 
-                      caa_apoe_clumped[, .(SNP)], 
-                      by.x = c("SNPID"),
-                      by.y = c("SNP"))
-caa_apoe_top[, Phenotype := "caa_ord"]
+for (i in 1:(ncol(pheno) - 2)) {
+  results_clump[[i]][, Phenotype := colnames(pheno)[i + 2]]
+}
+
+results_clump <- rbindlist(results_clump)
+
+results_top <- merge(
+  results, 
+  results_clump[, .(SNP, Phenotype)], 
+  by.x = c("MarkerName", "Phenotype"),
+  by.y = c("SNP", "Phenotype")
+)
+
+results_top <- 
+  results_top[, .(Phenotype, MarkerName, chr, bp, Freq1, Allele1, Allele2, Effect, StdErr, P.value)]
+setnames(results_top, 
+         colnames(results_top),
+         c("Phenotype", "Variant", "Chromosome", "BP", "MAF", "A1", "A2", "Beta", "SE", "P"))
+
+caa_apoe_top <- caa_apoe_results[P.value == min(P.value)]
+caa_apoe_top[, Phenotype := "caa"]
+
 caa_apoe_top <- 
-  caa_apoe_top[, .(Phenotype, SNPID, chr, MAF, beta, pval.spa)]
-setnames(caa_apoe_top, 
-         colnames(caa_apoe_top),
-         c("Phenotype", "Variant", "Chromosome", "MAF", "Beta", "P"))
+  caa_apoe_top[, .(Phenotype, MarkerName, chr, bp, Freq1, Allele1, Allele2, Effect, StdErr, P.value)]
+
+setnames(
+  caa_apoe_top, 
+  colnames(caa_apoe_top),
+  c("Phenotype", "Variant", "Chromosome", "BP", "MAF", "A1", "A2", "Beta", "SE", "P")
+)
 
 
 # combine all top results
-results_top <- rbindlist(list(results_ord_top, 
-                              results_bin_top, 
-                              caa_apoe_top))
+results_top <- rbindlist(list(results_top, caa_apoe_top))
 
-# merge top results with .bim file
-results_top <- merge(results_top, 
-                     bim, 
-                     by.x = c("Chromosome", "Variant"), 
-                     by.y = c("CHR", "SNP"))
+# # merge top results with .bim file
+# results_top <- merge(results_top, 
+#                      bim, 
+#                      by.x = c("Chromosome", "Variant"), 
+#                      by.y = c("CHR", "SNP"))
+
+# ensure minor allele is effect allele
+results_top[MAF > 0.5, Beta := -Beta]
+majora = results_top[MAF > 0.5, A1]
+minora = results_top[MAF > 0.5, A2]
+results_top[MAF > 0.5, A1 := A2]
+results_top[MAF > 0.5, A2 := ..majora]
+results_top[MAF > 0.5, MAF := 1-MAF]
 
 # import list of gene names and positions and 
 # add closest protein-coding gene to table
@@ -131,19 +114,23 @@ results_top[, Gene := find_closest_gene(Chromosome, BP, genes)]
 
 results_top[, OR := round(exp(Beta), 2)]
 results_top[, P := signif(P, 2)]
-results_top[, Phenotype := 
-              factor(
-                Phenotype, 
-                labels = c("Arteriolosclerosis", "Atherosclerosis",
-                           "Braak NFT Stage", "CAA", "CERAD Score", 
-                           "Diffuse Amyloid Plaques", "Gross Infarction",
-                           "HS", "LATE-NC", "Lewy Body", "Microinfarct"))]
+
+results_top[
+  , 
+  Phenotype := factor(
+    Phenotype, 
+    labels = c("Arteriolosclerosis", "Atherosclerosis",
+               "Braak NFT Stage", "CAA", "CERAD Score", "Gross Infarction",
+               "HS", "LATE-NC", "Lewy Body", "Microinfarct")
+  )
+]
+
 results_top[, `Minor/major allele` := paste0(A1, "/", A2)]
-results_top[, `95% CI` := make_95CI(OR, P)]
+results_top[, `95% CI` := make_or_95_ci(OR, round(exp(Beta - 1.96 * SE), 2), round(exp(Beta + 1.96 * SE), 2), P)]
 setnames(results_top, "BP", "Position")
 setcolorder(results_top, c("Chromosome", "Position", "Phenotype"))
 results_signif <- 
-  results_top[P < 5e-8, 
+  results_top[P < 1e-7, 
               .(Phenotype, Gene, Variant, Chromosome, Position, 
                 `Minor/major allele`, OR, `95% CI`, P)
   ]
@@ -152,44 +139,55 @@ results_signif[, P := formatC(P, digits = 2)]
 # for phenotypes with more than one hit in APOE region, 
 # remove all but top hits
 results_signif <- results_signif[
-  !((Phenotype == "CAA" & Variant %in% c("rs111997200", "rs283810")) |
-      (Phenotype == "Braak NFT Stage" & Variant == "rs11668327") |
-      (Phenotype == "CERAD Score" & Variant == "rs365653"))
+  !(
+    (Phenotype == "CAA" & Variant %in% c("chr19:44860563:T:G", "rs283810", "rs3760625")) |
+      (Phenotype == "Braak NFT Stage" & Variant %in% c("chr19:44909976:G:T", "rs3852860")) |
+      (Phenotype == "CERAD Score" & Variant %in% c("chr19:44909976:G:T", "rs3852860")))
 ]
 setorder(results_signif, Chromosome, Position, Phenotype)
 
 t2 <- flextable(results_signif) %>% 
   autofit() %>% 
   padding(padding = 2, part = "all") %>%
-  add_header_lines(paste0("Table 2: Significant NPE-Associated Loci in ", 
-                          "Mega-Analysis")) %>% 
+  add_header_lines(paste0("Table 1: Significant NPE-Associated Loci in ", 
+                          "Stage 3 pooled GWAS")) %>% 
   footnote(i = nrow_part(., part = "header"), j = 2, 
            value = 
              as_paragraph(paste0("Closest protein-coding gene according to ",
-                                 "GENCODE release 40.")), 
+                                 "GENCODE release 40. ")), 
            ref_symbols = c("a"),
-           part = "header") %>% 
+           part = "header", 
+           inline = TRUE,
+           sep = " ") %>% 
   footnote(i = nrow_part(., part = "header"), j = 5, 
            value = 
              as_paragraph("Genome positions are based on build HG38."), 
            ref_symbols = c("b"),
-           part = "header") %>% 
+           part = "header", 
+           inline = TRUE,
+           sep = " ") %>% 
   footnote(i = nrow_part(., part = "header"), j = 7, 
            value = 
              as_paragraph(paste0("ORs are with respect to minor allele.")), 
            ref_symbols = c("c"),
-           part = "header") %>% 
+           part = "header", 
+           inline = TRUE,
+           sep = " ") %>% 
   footnote(i = nrow_part(., part = "body"), j = 1, 
            value = 
-             as_paragraph("Result from APOE diplotype-adjusted analysis"), 
-           ref_symbols = c("d")) %>% 
-  footnote(i = (nrow_part(., part = "body")-5):nrow_part(., part = "body"), 
-           j = 2, 
-           value = 
-             as_paragraph("Locus in APOE region"), 
-           ref_symbols = c("e")) %>% 
+             as_paragraph("Result from APOE diplotype-adjusted analysis."), 
+           ref_symbols = c("d"),
+           inline = TRUE,
+           sep = " ") %>% 
+  # footnote(i = (nrow_part(., part = "body")-5):nrow_part(., part = "body"), 
+  #          j = 2, 
+  #          value = 
+  #            as_paragraph("Locus in APOE region"), 
+  #          ref_symbols = c("e"), 
+  #          inline = TRUE,
+  #          sep = " ") %>% 
   style(j = 2, 
        pr_t = fp_text_default(
          italic = TRUE)) 
 
-t2
+save(t2, file = "output/manuscript/table2_meta_analysis_results.Rdata")

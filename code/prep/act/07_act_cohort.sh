@@ -4,7 +4,7 @@
 # list IIDs in ADGC imputed using TOPMed panel
 # (run in gazelle)
 #==================================================
-
+rm data/act/act_ids_adgc.txt
 for i in {1..3}
   do 
   file=$(ls /data_global/ADGC_GWAS/ADGC_NHW/ACT$i/CleanedGenotypes/ | egrep '.*.fam')

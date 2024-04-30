@@ -9,7 +9,7 @@ prefix_out="$prefix"_np
 # one final pass at variant QC
 plink \
   --bfile tmp/"$prefix"_3 \
-  --maf 0.05 \
+  --maf 0.005 \
   --geno 0.05 \
   --hwe 1e-6 midp include-nonctrl \
   --make-bed \

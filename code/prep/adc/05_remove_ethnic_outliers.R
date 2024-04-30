@@ -7,7 +7,9 @@ p_load(data.table, magrittr, ggplot2)
 # groundhog.library("ggplot2", day)
 
 # 1000g (otg) data population data
-otg <- fread("/data_global/1000g/integrated_call_samples_v3.20130502.ALL.panel") %>% 
+otg <- fread(
+  "/data_global/1000g/integrated_call_samples_v3.20130502.ALL.panel"
+  ) %>% 
   .[, sample, super_pop]
 
 # PCA data
@@ -82,15 +84,18 @@ InsideCircle <- function(x, y, r, center = c(0, 0)) {
 otg.merged[, include := 
              ifelse(
                is.na(super_pop) == T & 
-                 InsideCircle(PC1.norm, 
-                              PC2.norm, 
-                              radius, 
-                              c(otg.merged[super_pop == "EUR", 
-                                           mean(PC1.norm)], 
-                                otg.merged[super_pop == "EUR", 
-                                           mean(PC2.norm)]
-                              )
-                 ) == T, TRUE, FALSE)
+                 InsideCircle(
+                   PC1.norm, 
+                   PC2.norm, 
+                   radius, 
+                   c(
+                     otg.merged[super_pop == "EUR", mean(PC1.norm)], 
+                     otg.merged[super_pop == "EUR", mean(PC2.norm)]
+                   )
+                 ) == T, 
+               TRUE, 
+               FALSE
+             )
 ]
 
 adc <- otg.merged[include == T, ]
